@@ -13,31 +13,29 @@ const router = createBrowserRouter([
     path: "/",
     element: (
       <App />
-),
+    ),
     children: [
       {
         path: "/",
         element: <Content />
-      }, 
+      },
       {
         path: "/directory/:dirId",
         element: <Content />
-      }    
+      }
     ],
   },
   {
     path: "/login",
     element: (
-        <Login />
+      <Login />
     )
   }
 ]);
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
     <AppProvider>
-    <Toaster />
-    <RouterProvider router={router} />
+      <Toaster />
+      <RouterProvider router={router} />
     </AppProvider>
-  </StrictMode>
 )

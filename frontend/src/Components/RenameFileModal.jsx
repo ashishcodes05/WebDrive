@@ -3,10 +3,10 @@ import React, { useState } from "react";
 const RenameFileModal = ({ onClose, fileId, filename, renameFileHandler }) => {
     const [newFileName, setNewFileName] = useState(filename);
     return (
-        <div className="fixed inset-0 z-9999 flex items-center justify-center">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
 
             <div
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
+                className="absolute inset-0 modal-backdrop bg-black/50 backdrop-blur-sm animate-fade-in"
                 onClick={onClose}
             />
 

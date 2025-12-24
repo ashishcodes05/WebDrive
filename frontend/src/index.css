@@ -71,3 +71,12 @@
 .scrollbar-none {
   scrollbar-width: none;
 }
+
+.btn-glow {
+  box-shadow: 0 0 12px rgba(79, 139, 255, 0.6), 0 0 28px rgba(79, 139, 255, 0.4);
+}
+
+.modal-backdrop {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+}

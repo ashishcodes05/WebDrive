@@ -32,9 +32,9 @@ const CreateFolderModal = ({ onClose }) => {
         }
     }
     return (
-        <div className="fixed inset-0 z-9999 flex items-center justify-center">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
             <div
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
+                className="absolute inset-0 modal-backdrop bg-black/30 backdrop-blur-sm animate-fade-in"
                 onClick={onClose}
             />
             <div
@@ -91,7 +91,7 @@ const CreateFolderModal = ({ onClose }) => {
                         className="
                             px-5 py-2 rounded-lg font-medium
                             bg-primary text-white
-                            shadow-[0_0_14px_rgba(79,139,255,0.4)]
+                            btn-glow
                             hover:bg-secondary 
                             transition 
                         "

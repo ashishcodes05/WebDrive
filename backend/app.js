@@ -5,8 +5,11 @@ import directoryRoutes from './Routes/directoryRoutes.js'
 import fileRoutes from './Routes/fileRoutes.js'
 import userRoutes from './Routes/userRoutes.js'
 import checkAuth from "./auth.js";
+import { connectDB } from "./db.js";
 const app = express();
 const port = 4000;
+
+const db = await connectDB();
 
 app.use(express.json());
 app.use(cors({
@@ -14,6 +17,10 @@ app.use(cors({
   credentials: true
 }));
 app.use(cookieParser());
+app.use((req, res, next) => {
+  req.db = db;
+  next();
+})
 
 app.use('/directory',checkAuth, directoryRoutes);
 app.use('/file',checkAuth, fileRoutes);

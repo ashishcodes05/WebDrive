@@ -7,7 +7,7 @@ import RenameFileModal from "./RenameFileModal";
 
 export default function FileRow({ file, renameFileHandler, deleteFileHandler, selectedRow, setSelectedRow }) {
     const BASE_URL = "http://localhost:4000"
-    const {id, filename, extension, size } = file;
+    const {_id : id, filename, extension, size } = file;
     const [RenameModalOpen, setRenameModalOpen] = useState(false);
     const readableSize = formatFileSize(size);
     const { icon: Icon, color } = getFileIcon(extension);

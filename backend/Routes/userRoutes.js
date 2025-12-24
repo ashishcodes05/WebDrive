@@ -4,6 +4,7 @@ import { writeFile } from "fs/promises";
 import usersData from "../usersDB.json" with {type: "json"};
 import directoriesData from "../directoriesDB.json" with {type: "json"};
 import checkAuth from "../auth.js";
+import { Db } from "mongodb";
 const router = express.Router();
 
 router.get("/", checkAuth, (req, res) => {
@@ -17,29 +18,22 @@ router.post("/register", async (req, res, next) => {
         if(!name || !email || !password){
             return res.status(400).json({success: false, message: "All fields are required"});
         }
-        const found = usersData.find((user) => user.email === email);
+        const db = req.db;
+        const found = await db.collection("users").findOne({email});
         if(found){
             return res.status(409).json({success: false, message: "User already exists"});
         }
-        const userId = crypto.randomUUID();
-        const directoryId = crypto.randomUUID();
-        usersData.push({
-            id: userId,
+        const { insertedId : userId } = await db.collection("users").insertOne({
             name,
             email,
-            password,
-            rootDirectory: directoryId
+            password
         })
-        directoriesData.push({
-            id: directoryId,
+        const { insertedId : directoryId } = await db.collection("directories").insertOne({
             name: `root-${email}`,
             parentDir: null,
             userId,
-            files: [],
-            directories: []
         })
-        await writeFile("./usersDB.json", JSON.stringify(usersData));
-        await writeFile("./directoriesDB.json", JSON.stringify(directoriesData));
+        await db.collection("users").updateOne({_id: userId}, {$set: {rootDirectory: directoryId}});
         return res.status(201).json({success: true, message: "User Registered Successfully"});
     } catch (err) {
         next(err);
@@ -49,15 +43,15 @@ router.post("/register", async (req, res, next) => {
 router.post("/login", async (req, res, next) => {
     try {
         const { email, password } = req.body;
-        console.log(req.body)
         if(!email || !password){
             return res.status(400).json({success: false, message: "All fields are required"});
         }
-        const user = usersData.find((user) => user.email === email && user.password === password);
+        const db = req.db;
+        const user = await db.collection("users").findOne({email, password});
         if(!user){
             return res.status(401).json({success: false, message: "Invalid credentials"});
         }
-        res.cookie("userId", user.id, {
+        res.cookie("userId", user._id.toString(), {
             httpOnly: true,
             maxAge: 24 * 60 * 60 * 1000 * 7// 7 day
         });

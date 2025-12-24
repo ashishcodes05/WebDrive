@@ -8,7 +8,8 @@ import RenameDirectoryModal from "./RenameDirectoryModal";
 import { Link } from "react-router";
 
 export default function DirectoryRow({directory, selectedRow, renameDirectoryHandler, deleteDirectoryHandler, setSelectedRow }) {
-    const { id, name } = directory;
+    const { _id, name } = directory;
+    const id = _id.toString();
     const [RenameModalOpen, setRenameModalOpen] = useState(false);
     const { icon: Icon, color } = getFileIcon("folder");
     const [menuPos, setMenuPos] = useState(null);
