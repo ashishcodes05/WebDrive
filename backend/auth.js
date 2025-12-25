@@ -1,5 +1,4 @@
-import { Db, ObjectId } from "mongodb";
-import usersData from "./usersDB.json" with {type: "json"};
+import { ObjectId } from "mongodb";
 
 export default async function checkAuth(req, res, next) {
   const db = req.db;

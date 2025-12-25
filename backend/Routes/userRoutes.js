@@ -1,5 +1,6 @@
 import express from "express";
 import checkAuth from "../auth.js";
+import { ObjectId } from "mongodb";
 const router = express.Router();
 
 router.get("/", checkAuth, (req, res) => {
@@ -18,17 +19,21 @@ router.post("/register", async (req, res, next) => {
         if(found){
             return res.status(409).json({success: false, message: "User already exists"});
         }
-        const { insertedId : userId } = await db.collection("users").insertOne({
+        const userId = new ObjectId();
+        const directoryId = new ObjectId();
+        await db.collection("users").insertOne({
+            _id: userId,
             name,
             email,
-            password
+            password,
+            rootDirectory: directoryId 
         })
-        const { insertedId : directoryId } = await db.collection("directories").insertOne({
+        await db.collection("directories").insertOne({
+            _id: directoryId,
             name: `root-${email}`,
             parentDir: null,
             userId,
         })
-        await db.collection("users").updateOne({_id: userId}, {$set: {rootDirectory: directoryId}});
         return res.status(201).json({success: true, message: "User Registered Successfully"});
     } catch (err) {
         next(err);
