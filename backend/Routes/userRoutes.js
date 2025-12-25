@@ -1,10 +1,5 @@
 import express from "express";
-import crypto from "crypto";
-import { writeFile } from "fs/promises";
-import usersData from "../usersDB.json" with {type: "json"};
-import directoriesData from "../directoriesDB.json" with {type: "json"};
 import checkAuth from "../auth.js";
-import { Db } from "mongodb";
 const router = express.Router();
 
 router.get("/", checkAuth, (req, res) => {
