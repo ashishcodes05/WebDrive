@@ -4,8 +4,8 @@ import cookieParser from "cookie-parser";
 import directoryRoutes from './Routes/directoryRoutes.js'
 import fileRoutes from './Routes/fileRoutes.js'
 import userRoutes from './Routes/userRoutes.js'
-import checkAuth from "./auth.js";
-import { connectDB } from "./db.js";
+import checkAuth from "./Middlewares/auth.js";
+import { connectDB } from "./Configs/db.js";
 const app = express();
 const port = 4000;
 

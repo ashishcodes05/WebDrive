@@ -53,7 +53,6 @@ router.post("/{:parDirId}", async (req, res, next) => {
       name: foldername,
       parentDir: parDirId,
       userId: user._id,
-      lastModified: Date.now()
     });
     return res.status(200).json({ success: true, message: "Folder Created Successfully" });
   } catch (err) {

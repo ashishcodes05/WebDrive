@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
 
 const url = "mongodb://127.0.0.1:27017/Webdrive";
-const client = new MongoClient(url);
+export const client = new MongoClient(url);
 
 export async function connectDB(){
     await client.connect();

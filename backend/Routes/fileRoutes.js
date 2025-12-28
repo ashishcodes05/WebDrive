@@ -78,7 +78,6 @@ router.post("/{:parDirId}", upload.fields([{ name: "uploadedFiles", maxCount: 10
       const { originalname: filename } = file;
       const extension = path.extname(file.originalname);
       const { size } = file;
-      const lastModified = Date.now();
       filesData.push({
         _id,
         parDirId,
@@ -86,7 +85,6 @@ router.post("/{:parDirId}", upload.fields([{ name: "uploadedFiles", maxCount: 10
         filename,
         extension,
         size,
-        lastModified
       })
     })
     await db.collection("files").insertMany(filesData);

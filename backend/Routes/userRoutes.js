@@ -1,6 +1,7 @@
 import express from "express";
-import checkAuth from "../auth.js";
+import checkAuth from "../Middlewares/auth.js";
 import { ObjectId } from "mongodb";
+import { client } from "../Configs/db.js";
 const router = express.Router();
 
 router.get("/", checkAuth, (req, res) => {
@@ -9,6 +10,7 @@ router.get("/", checkAuth, (req, res) => {
 })
 
 router.post("/register", async (req, res, next) => {
+    const session = client.startSession();
     try {
         const { name, email, password } = req.body;
         if(!name || !email || !password){
@@ -19,6 +21,7 @@ router.post("/register", async (req, res, next) => {
         if(found){
             return res.status(409).json({success: false, message: "User already exists"});
         }
+        session.startTransaction();
         const userId = new ObjectId();
         const directoryId = new ObjectId();
         await db.collection("users").insertOne({
@@ -34,8 +37,13 @@ router.post("/register", async (req, res, next) => {
             parentDir: null,
             userId,
         })
+        await session.commitTransaction();
         return res.status(201).json({success: true, message: "User Registered Successfully"});
     } catch (err) {
+        await session.abortTransaction(); //rollback
+        if(err.code === 121){
+            return res.status(400).json({success: false, message: "Invalid Inputs"});
+        }
         next(err);
     }
 })
