@@ -96,7 +96,6 @@ export const deleteDirectoryById = async (req, res, next) => {
   const { id } = req.params;
   try {
     const directoryData = await Directory.findOne({ _id: id, userId: user._id }).select("_id").lean();
-    console.log(directoryData);
     if (!directoryData) {
       return res.status(404).json({ success: false, message: "Directory Not Found" });
     }

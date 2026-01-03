@@ -2,8 +2,8 @@ import express from "express";
 import multer from "multer";
 import validateIdMiddleware from "../Middlewares/validateIdMiddleware.js";
 import { deleteFileById, getFileById, renameFileById, uploadFiles } from "../Controllers/fileController.js";
-import { ObjectId } from "mongodb";
 import path from "node:path"
+import { Types } from "mongoose";
 
 const router = express.Router();
 
@@ -15,7 +15,7 @@ const storage = multer.diskStorage({
     cb(null, './Storage/')
   },
   filename: function (req, file, cb) {
-    const _id = new ObjectId();
+    const _id = new Types.ObjectId();
     const extension = path.extname(file.originalname);
     file._id = _id;
     cb(null, `${_id}${extension}`);

@@ -1,5 +1,6 @@
-import { ObjectId } from "mongodb";
-import { client } from "../Configs/db.js";
+import mongoose, { Types } from "mongoose";
+import User from "../Models/userModel.js";
+import Directory from "../Models/directoryModel.js";
 
 export const getUser = (req, res) => {
     const user = req.user;
@@ -13,28 +14,27 @@ export const getUser = (req, res) => {
 };
 
 export const createUser = async (req, res, next) => {
-    const session = client.startSession();
+    const session = await mongoose.startSession();
     try {
         const { name, email, password } = req.body;
         if(!name || !email || !password){
             return res.status(400).json({success: false, message: "All fields are required"});
         }
-        const db = req.db;
-        const found = await db.collection("users").findOne({email});
+        const found = await User.findOne({email});
         if(found){
             return res.status(409).json({success: false, message: "User already exists"});
         }
         session.startTransaction();
-        const userId = new ObjectId();
-        const directoryId = new ObjectId();
-        await db.collection("users").insertOne({
+        const userId = new Types.ObjectId();
+        const directoryId = new Types.ObjectId();
+        await User.insertOne({
             _id: userId,
             name,
             email,
             password,
             rootDirectory: directoryId 
         })
-        await db.collection("directories").insertOne({
+        await Directory.insertOne({
             _id: directoryId,
             name: `root-${email}`,
             parentDir: null,
@@ -57,12 +57,11 @@ export const loginUser = async (req, res, next) => {
         if(!email || !password){
             return res.status(400).json({success: false, message: "All fields are required"});
         }
-        const db = req.db;
-        const user = await db.collection("users").findOne({email, password});
+        const user = await User.findOne({email, password}).select("_id");
         if(!user){
             return res.status(401).json({success: false, message: "Invalid credentials"});
         }
-        res.cookie("userId", user._id.toString(), {
+        res.cookie("userId", user.id, {
             httpOnly: true,
             maxAge: 24 * 60 * 60 * 1000 * 7// 7 day
         });

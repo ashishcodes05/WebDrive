@@ -1,17 +1,20 @@
-import { MongoClient } from "mongodb";
+import mongoose from "mongoose";
 
-const url = "mongodb://ashish:ashish123@localhost:27017/Webdrive?replicaSet=myReplicaSet";
-export const client = new MongoClient(url);
+const url = "mongodb://admin:admin@localhost:27017/Webdrive?authSource=admin&replicaSet=myReplicaSet";
 
 export async function connectDB(){
-    await client.connect();
-    const db = client.db();
-    console.log(`Connected to ${db.databaseName} database`);
-    return db;
+    try {
+        await mongoose.connect(url);
+        console.log(`Connected to ${mongoose.connection.name} database`);
+    } catch(err){
+        console.log(err);
+        console.log("Unable to connect to the database");
+        process.exit(1);
+    }
 }
 
 process.on("SIGINT", async() => {
-    await client.close();
+    await mongoose.disconnect();
     console.log("Database Disconnected!")
     process.exit(0);
 })

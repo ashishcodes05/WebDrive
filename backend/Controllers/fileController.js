@@ -1,12 +1,12 @@
 import { rm } from "fs/promises";
 import path from "path";
-import { ObjectId } from "mongodb";
+import File from "../Models/fileModel.js";
+import Directory from "../Models/directoryModel.js";
 
 export const getFileById = async(req, res) => {
   const user = req.user;
   const { id } = req.params;
-  const db = req.db;
-  const fileData = await db.collection("files").findOne({_id: new ObjectId(id), userId: user._id});
+  const fileData = await File.findOne({_id: id, userId: user._id}).select("filename extension").lean();
   if (!fileData) {
     return res.status(404).json({
       success: false,
@@ -34,9 +34,8 @@ export const getFileById = async(req, res) => {
 export const uploadFiles = async (req, res, next) => {
   try {
     const user = req.user;
-    const parDirId = req.params.parDirId ? new ObjectId(req.params.parDirId) : user.rootDirectory;
-    const db = req.db;
-    const directoryData = await db.collection("directories").findOne({_id: parDirId, userId: user._id});
+    const parDirId = req.params.parDirId || user.rootDirectory.toString();
+    const directoryData = await Directory.findOne({_id: parDirId, userId: user._id});
     if (!directoryData) {
       return res.status(404).json({
         success: false,
@@ -65,7 +64,7 @@ export const uploadFiles = async (req, res, next) => {
         size,
       })
     })
-    await db.collection("files").insertMany(filesData);
+    await File.insertMany(filesData);
     return res.status(201).json({ success: true, message: "Files Uploaded Successfully" });
   } catch (err) {
     next(err);
@@ -76,7 +75,6 @@ export const renameFileById = async (req, res, next) => {
   const user = req.user;
   const { id } = req.params;
   const { newFilename } = req.body;
-  const db = req.db;
   if (!newFilename) {
     return res.status(400).json({
       success: false,
@@ -84,8 +82,8 @@ export const renameFileById = async (req, res, next) => {
     });
   }
   try {
-    const result = await db.collection("files").updateOne({_id: new ObjectId(id), userId: user._id}, {$set: {filename: newFilename}});
-    if(result.matchedCount == 0){
+    const file = await File.findOneAndUpdate({_id: id, userId: user._id}, {$set: {filename: newFilename}}, {runValidators: true});
+    if(!file){
       return res.status(200).json({ success: false, message: "File Not Found" });
     }
     return res.status(200).json({ success: true, message: "Renamed Successfully" });
@@ -97,13 +95,11 @@ export const renameFileById = async (req, res, next) => {
 export const deleteFileById = async (req, res, next) => {
   const user = req.user;
   const { id } = req.params;
-  const db = req.db;
   try {
-    const fileData = await db.collection('files').findOne({_id: new ObjectId(id), userId: user._id});
+    const fileData = await File.findOneAndDelete({_id: id, userId: user._id}).select("extension").lean();
     if(!fileData){
-      return res.json({ success: false, message: "file not found" });
+      return res.status(404).json({ success: false, message: "File not found" });
     }
-    await db.collection('files').deleteOne({_id: new ObjectId(id)});
     await rm(`./Storage/${id}${fileData.extension}`);
     res.status(200).json({ success: true, message: "Deleted Successfully" });
   } catch (err) {

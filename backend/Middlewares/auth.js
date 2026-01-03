@@ -1,9 +1,8 @@
-import { ObjectId } from "mongodb";
+import User from "../Models/userModel.js";
 
 export default async function checkAuth(req, res, next) {
-  const db = req.db;
   const { userId } = req.cookies;
-  const user = await db.collection("users").findOne({_id: new ObjectId(userId)});
+  const user = await User.findOne({_id: userId});
   if (!userId || !user) {
     return res.status(401).json({
       success: false,
