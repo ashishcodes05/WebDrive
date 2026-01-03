@@ -13,7 +13,7 @@ const Login = () => {
         password: "",
     });
     const navigate = useNavigate();
-    const { setLoggedIn, fetchUserData } = useAppContext();
+    const { setLoadingUser, fetchUserData } = useAppContext();
     const onChangeHandler = (e) => {
         setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
@@ -31,7 +31,7 @@ const Login = () => {
             const data = await response.json();
             if (data.success) {
                 toast.success(data.message);
-                navigate("/");
+                setState("login");
             } else {
                 toast.error(data.message);
             }
@@ -59,7 +59,8 @@ const Login = () => {
             }
             if (data.success) {
                 toast.success(data.message);
-                await fetchUserData();
+                fetchUserData();
+                setLoadingUser(false);
                 navigate("/");
             }
         } catch (error) {

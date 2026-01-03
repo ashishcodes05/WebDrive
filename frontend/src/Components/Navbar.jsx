@@ -11,7 +11,7 @@ const Navbar = () => {
   const [openUploadModal, setOpenUploadModal] = useState(false);
   const [openCreateFolderModal, setOpenCreateFolderModal] = useState(false);
   const [toggleUserMenu, setToggleUserMenu] = useState(false);
-  const { loggedIn, setLoggedIn, user, setUser } = useAppContext();
+  const { user, setUser } = useAppContext();
   const closeUploadModal = () => {
     setOpenUploadModal(false)
   };
@@ -24,7 +24,6 @@ const Navbar = () => {
       });
       const data = await response.json();
       if (data.success) {
-        setLoggedIn(false);
         navigate("/Login");
         setUser(null);
         toast.success(data.message);
@@ -48,7 +47,7 @@ const Navbar = () => {
           <FolderPlus className='text-primary-accent cursor-pointer hover:text-secondary-accent hover:scale-110 transition-transform duration-200' size={30} />
           <span className='text-xs text-text-secondary'>Create</span>
         </button>
-        {!loggedIn ? (
+        {!user ? (
           <Link to={"/Login"} className='text-white bg-secondary-accent px-4 py-2 rounded-md cursor-pointer hover:bg-secondary hover:scale-110 transition-transform duration-200'>Login</Link>
         ) : (
           <button onClick={() => setToggleUserMenu(!toggleUserMenu)} className='flex flex-col items-center'>

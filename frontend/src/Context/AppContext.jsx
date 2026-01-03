@@ -9,7 +9,7 @@ export function AppProvider({ children }) {
   const [files, setFiles] = useState([]);
   const [directories, setDirectories] = useState([]);
   const [user, setUser] = useState(null);
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(true);
   const fetchDirectoryContents = async (dirId) => {
     try {
       const response = await fetch(`${BASE_URL}/directory/${dirId || ""}`, {
@@ -41,18 +41,13 @@ export function AppProvider({ children }) {
       }
     } catch (err) {
       console.error("Error fetching user data:", err);
+    } finally {
+      setLoadingUser(false);
     }
   }
   useEffect(() => {
     fetchUserData();
   }, []);
-  useEffect(() => {
-    if (user) {
-      setLoggedIn(true);
-    } else {
-      setLoggedIn(false);
-    }
-  }, [user]);
   const value = {
     files,
     setFiles,
@@ -62,8 +57,8 @@ export function AppProvider({ children }) {
     fetchUserData,
     user,
     setUser,
-    loggedIn,
-    setLoggedIn
+    loadingUser,
+    setLoadingUser,
   };
 
   return (

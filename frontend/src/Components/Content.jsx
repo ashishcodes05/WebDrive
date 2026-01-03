@@ -1,18 +1,19 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import FileRow from "./FileRow";
-import RenameModal from "./RenameFileModal";
 import DetailCard from "./DetailCard";
 import DirectoryRow from "./DirectoryRow";
 import { useAppContext } from "../Context/AppContext";
 import toast from 'react-hot-toast';
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
+import Loader from "./Loader";
 
 const Content = () => {
   const BASE_URL = "http://localhost:4000"
   const {dirId} = useParams();
   const [sortBy, setSortBy] = useState("name-asc");
-  const { files, setFiles, directories, setDirectories, fetchDirectoryContents } = useAppContext();
+  const { files, setFiles, directories, setDirectories, fetchDirectoryContents, user, loadingUser } = useAppContext();
   const [selectedRow, setSelectedRow] = useState(null);
+  const navigate = useNavigate();
 
   const renameFileHandler = async (fileId, newFilename) => {
     try {
@@ -113,6 +114,15 @@ const Content = () => {
   useEffect(() => {
     fetchDirectoryContents(dirId);
   }, [dirId]);
+
+  if(loadingUser){
+    return <Loader />;
+  }
+
+  if(!user){
+    navigate("/login");
+    return;
+  }
 
   return (
     <div className="grow bg-background px-32 py-8 flex flex-col items-center space-y-6">
