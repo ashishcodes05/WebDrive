@@ -6,6 +6,7 @@ import fileRoutes from './Routes/fileRoutes.js'
 import userRoutes from './Routes/userRoutes.js'
 import checkAuth from "./Middlewares/auth.js";
 import { connectDB } from "./Configs/db.js";
+import "./Configs/db2.js"
 const app = express();
 const port = 4000;
 
