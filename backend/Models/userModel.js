@@ -4,7 +4,8 @@ const userSchema = new Schema({
     name: {
         type: String,
         minLength: [3, "The name of the user should be atleast 3 characters long"],
-        required: true
+        required: true,
+        trim: true
     },
     email: {
         type: String,
@@ -12,12 +13,15 @@ const userSchema = new Schema({
             /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
             "Please provide a valid email"
         ],
+        unique: true,
+        lowercase: true,
         required: true
     },
     password: {
         type: String,
         minLength: [8, "The password should be of 8 characters"],
-        required: true
+        required: true,
+        trim: true
     },
     rootDirectory: {
         type: Schema.Types.ObjectId,

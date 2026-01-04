@@ -20,10 +20,6 @@ export const createUser = async (req, res, next) => {
         if(!name || !email || !password){
             return res.status(400).json({success: false, message: "All fields are required"});
         }
-        const found = await User.findOne({email});
-        if(found){
-            return res.status(409).json({success: false, message: "User already exists"});
-        }
         session.startTransaction();
         const userId = new Types.ObjectId();
         const directoryId = new Types.ObjectId();
@@ -44,8 +40,13 @@ export const createUser = async (req, res, next) => {
         return res.status(201).json({success: true, message: "User Registered Successfully"});
     } catch (err) {
         await session.abortTransaction(); //rollback
+        console.log(err);
         if(err.code === 121){
             return res.status(400).json({success: false, message: "Invalid Inputs"});
+        } else if(err.code === 11000){
+            if(err.keyPattern && err.keyPattern.email){
+                return res.status(409).json({success: false, message: "User already exists"});
+            }
         }
         next(err);
     }
