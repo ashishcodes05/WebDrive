@@ -28,7 +28,7 @@ const Content = () => {
       );
       const data = await response.json();
       if (data.success) {
-        fetchDirectoryContents();
+        fetchDirectoryContents(dirId);
         toast.success("File renamed successfully!");
       } else {
         toast.error("File rename failed: " + data.message);

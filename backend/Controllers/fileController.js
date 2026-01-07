@@ -84,7 +84,7 @@ export const renameFileById = async (req, res, next) => {
   try {
     const file = await File.findOneAndUpdate({_id: id, userId: user._id}, {$set: {filename: newFilename}}, {runValidators: true});
     if(!file){
-      return res.status(200).json({ success: false, message: "File Not Found" });
+      return res.status(404).json({ success: false, message: "File Not Found" });
     }
     return res.status(200).json({ success: true, message: "Renamed Successfully" });
   } catch (err) {
