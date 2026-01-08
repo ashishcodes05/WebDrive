@@ -43,7 +43,7 @@ export const createUser = async (req, res, next) => {
         console.log(err);
         if(err.code === 121){
             return res.status(400).json({success: false, message: "Invalid Inputs"});
-        } else if(err.code === 11000){
+        } else if(err.code === 11000){ //Unique Indexing error
             if(err.keyPattern && err.keyPattern.email){
                 return res.status(409).json({success: false, message: "User already exists"});
             }
@@ -62,7 +62,11 @@ export const loginUser = async (req, res, next) => {
         if(!user){
             return res.status(401).json({success: false, message: "Invalid credentials"});
         }
-        res.cookie("userId", user.id, {
+        const cookiePayload = {
+            userId: user.id,
+            expiry: Math.round(Date.now()/1000) + (24 * 60 * 60 * 7)
+        }
+        res.cookie("token", Buffer.from(JSON.stringify(cookiePayload)).toString("base64url"), {
             httpOnly: true,
             maxAge: 24 * 60 * 60 * 1000 * 7// 7 day
         });
