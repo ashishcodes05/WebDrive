@@ -1,6 +1,7 @@
 import mongoose, { Types } from "mongoose";
 import User from "../Models/userModel.js";
 import Directory from "../Models/directoryModel.js";
+import crypto from "node:crypto"
 
 export const getUser = (req, res) => {
     const user = req.user;
@@ -62,11 +63,14 @@ export const loginUser = async (req, res, next) => {
         if(!user){
             return res.status(401).json({success: false, message: "Invalid credentials"});
         }
-        const cookiePayload = {
+        const secret = "Webdrive-ashish@123#";
+        const cookiePayload = JSON.stringify({
             userId: user.id,
             expiry: Math.round(Date.now()/1000) + (24 * 60 * 60 * 7)
-        }
-        res.cookie("token", Buffer.from(JSON.stringify(cookiePayload)).toString("base64url"), {
+        })
+        const signature = crypto.createHash("sha256").update(secret).update(cookiePayload).update(secret).digest("base64url");
+        const signedCookiePayload = `${Buffer.from(cookiePayload).toString("base64url")}.${signature}`;
+        res.cookie("token", signedCookiePayload, {
             httpOnly: true,
             maxAge: 24 * 60 * 60 * 1000 * 7// 7 day
         });
