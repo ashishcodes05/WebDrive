@@ -1,6 +1,9 @@
-import { client, connectDB } from "./db.js";
+import mongoose from "mongoose"
+import { connectDB } from "./db.js";
 
-const db = await connectDB();
+await connectDB();
+const db = mongoose.connection.db;
+const client = mongoose.connection.getClient();
 
 await db.command({
     collMod: "directories",
@@ -30,6 +33,9 @@ await db.command({
                 },
                 userId: {
                     bsonType: 'objectId'
+                },
+                __v: {
+                    bsonType: 'int'
                 }
             },
             additionalProperties: false
@@ -72,6 +78,9 @@ await db.command({
                 },
                 userId: {
                     bsonType: 'objectId'
+                },
+                __v: {
+                    bsonType: 'int'
                 }
             },
             additionalProperties: false
@@ -114,6 +123,9 @@ await db.command({
                 },
                 rootDirectory: {
                     bsonType: 'objectId'
+                },
+                __v: {
+                    bsonType: 'int'
                 }
             },
             additionalProperties: false
