@@ -63,15 +63,13 @@ export const loginUser = async (req, res, next) => {
         if(!user){
             return res.status(401).json({success: false, message: "Invalid credentials"});
         }
-        const secret = "Webdrive-ashish@123#";
         const cookiePayload = JSON.stringify({
             userId: user.id,
             expiry: Math.round(Date.now()/1000) + (24 * 60 * 60 * 7)
         })
-        const signature = crypto.createHash("sha256").update(secret).update(cookiePayload).update(secret).digest("base64url");
-        const signedCookiePayload = `${Buffer.from(cookiePayload).toString("base64url")}.${signature}`;
-        res.cookie("token", signedCookiePayload, {
+        res.cookie("token", Buffer.from(cookiePayload).toString("base64url"), {
             httpOnly: true,
+            signed: true,
             maxAge: 24 * 60 * 60 * 1000 * 7// 7 day
         });
         return res.status(200).json({success: true, message: "Login Successful"});

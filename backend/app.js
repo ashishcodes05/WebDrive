@@ -16,7 +16,7 @@ app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true
 }));
-app.use(cookieParser());
+app.use(cookieParser("Webdrive-ashish@123"));
 
 app.use('/directory',checkAuth, directoryRoutes);
 app.use('/file',checkAuth, fileRoutes);
