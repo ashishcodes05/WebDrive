@@ -32,6 +32,24 @@ const Navbar = () => {
       console.error("Error logging out:", err);
     }
   }
+
+  const onLogoutAll = async () => {
+    try {
+      const response = await fetch("http://localhost:4000/user/logoutAll", {
+        method: "POST",
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.success) {
+        navigate("/Login");
+        setUser(null);
+        toast.success(data.message);
+      }
+    } catch (err) {
+      toast.error("Error logging out from all devices:");
+      console.error("Error logging out from all devices:", err);
+    }
+  }
   return (
     <div className='flex sticky top-0 z-50 items-center justify-between p-6 px-16 border-b border-primary bg-background shadow-md'>
       <div className='flex items-center'>
@@ -53,7 +71,7 @@ const Navbar = () => {
           <button onClick={() => setToggleUserMenu(!toggleUserMenu)} className='flex flex-col items-center'>
             <User className='text-primary-accent cursor-pointer hover:text-secondary-accent hover:scale-110 transition-transform duration-200' size={30} />
             <span className='text-xs text-text-secondary'>Profile</span>
-            {toggleUserMenu && <UserMenu user={user} onLogout={onLogout} />}
+            {toggleUserMenu && <UserMenu user={user} onLogout={onLogout} onLogoutAll={onLogoutAll} />}
           </button>
         )}
       </div>

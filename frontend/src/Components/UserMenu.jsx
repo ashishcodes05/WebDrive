@@ -1,7 +1,7 @@
 import { LogOut } from "lucide-react";
 import { createPortal } from "react-dom";
 
-const UserMenu = ({ user, onLogout }) => {
+const UserMenu = ({ user, onLogout, onLogoutAll }) => {
   return createPortal(
     <div
       className="
@@ -35,7 +35,20 @@ const UserMenu = ({ user, onLogout }) => {
         "
       >
         <LogOut className="w-4 h-4" />
-        Logout
+        Logout from this device
+      </button>
+      <button
+        onClick={onLogoutAll}
+        className="
+          w-full flex items-center gap-3
+          px-5 py-3
+          text-sm text-red-400
+          hover:bg-red-500/10
+          transition
+        "
+      >
+        <LogOut className="w-4 h-4" />
+        Logout from all devices
       </button>
     </div>,
     document.getElementById("portal-root")

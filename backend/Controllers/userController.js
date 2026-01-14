@@ -1,7 +1,6 @@
 import mongoose, { Types } from "mongoose";
 import User from "../Models/userModel.js";
 import Directory from "../Models/directoryModel.js";
-import bcrypt from "bcrypt"
 import Session from "../Models/sessionModel.js";
 
 export const getUser = (req, res) => {
@@ -68,6 +67,12 @@ export const loginUser = async (req, res, next) => {
         if (!isValidPassword) {
             return res.status(401).json({ success: false, message: "Invalid Credentials" });
         }
+        //restricting number of devices into 2
+        const existingSessions = await Session.find({userId: user._id});
+        console.log(existingSessions.length)
+        if(existingSessions.length >= 2){
+            await existingSessions[0].deleteOne();
+        }
         const newSession = await Session.create({ userId: user._id });
         res.cookie("sid", newSession.id, {
             httpOnly: true,
@@ -80,7 +85,23 @@ export const loginUser = async (req, res, next) => {
     }
 }
 
-export const logoutUser = (req, res) => {
-    res.clearCookie("sid");
-    return res.status(200).json({ success: true, message: "Logout Successful" });
+export const logoutUser = async(req, res) => {
+    try {
+        const { sid } = req.signedCookies;
+        await Session.deleteOne({_id: sid});
+        res.clearCookie("sid");
+        return res.status(200).json({ success: true, message: "Logout Successful" });
+    } catch (err){
+        next(err)
+    }
+}
+
+export const logoutAllDevices = async(req, res, next) => {
+    try {
+        const user = req.user;
+        await Session.deleteMany({userId: user._id});
+        return res.status(200).json({ success: true, message: "Logout Successfully from all devices" });
+    } catch (err){
+        next(err);
+    }
 }

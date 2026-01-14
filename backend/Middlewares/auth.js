@@ -12,6 +12,9 @@ export default async function checkAuth(req, res, next) {
   }
 
   const session = await Session.findById(sessionId);
+  if(!session){
+    return res.status(401).json({success: false, message: "Not Authorised"});
+  }
   const user = await User.findOne({_id: session.userId});
   if (!user) {
     return res.status(401).json({
