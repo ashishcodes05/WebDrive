@@ -6,8 +6,8 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: "webdrive.cloud@gmail.com",
-        pass: "cqkd ldpw oftm pwyx",
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD,
     },
 });
 
@@ -16,7 +16,7 @@ export const sendEmail = async (email) => {
     try {
         await Otp.updateOne({email}, {otp: otp}, {upsert: true});
         const info = await transporter.sendMail({
-            from: '"Webdrive" <webdrive.cloud@gmail.com>',
+            from: `"Webdrive" <webdrive.cloud@gmail.com>`,
             to: email,
             subject: "Your Webdrive verification code",
             html: `

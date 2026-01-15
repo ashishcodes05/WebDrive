@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from "express";
 import cors from 'cors';
 import cookieParser from "cookie-parser";
@@ -7,6 +8,7 @@ import userRoutes from './Routes/userRoutes.js'
 import authRoutes from './Routes/authRoutes.js'
 import checkAuth from "./Middlewares/auth.js";
 import { connectDB } from "./Configs/db.js";
+
 const app = express();
 const port = 4000;
 
@@ -17,7 +19,7 @@ app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true
 }));
-app.use(cookieParser("Webdrive-ashish@123"));
+app.use(cookieParser(process.env.Cookie_Secret));
 
 app.use('/directory',checkAuth, directoryRoutes);
 app.use('/file',checkAuth, fileRoutes);
