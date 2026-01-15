@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import directoryRoutes from './Routes/directoryRoutes.js'
 import fileRoutes from './Routes/fileRoutes.js'
 import userRoutes from './Routes/userRoutes.js'
+import authRoutes from './Routes/authRoutes.js'
 import checkAuth from "./Middlewares/auth.js";
 import { connectDB } from "./Configs/db.js";
 const app = express();
@@ -21,6 +22,7 @@ app.use(cookieParser("Webdrive-ashish@123"));
 app.use('/directory',checkAuth, directoryRoutes);
 app.use('/file',checkAuth, fileRoutes);
 app.use('/user', userRoutes);
+app.use('/auth', authRoutes);
 
 app.use((err, req, res, next) => {
   console.log(err)
