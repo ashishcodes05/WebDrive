@@ -10,8 +10,10 @@ export const sendOtp = async(req, res) => {
 export const verifyOtp = async(req, res) => {
     const { email, enteredOtp } = req.body;
     const storedOtp = await Otp.findOne({email});
-    if(enteredOtp === storedOtp.otp){
-        return res.json({success: true, message: "Email verified successfully"})
+    const isValid = await storedOtp.compareOtp(enteredOtp);
+    if(isValid){
+        await storedOtp.deleteOne();
+        return res.status(200).json({success: true, message: "Email verified successfully"})
     }
-    return res.json({success: false, message: "Invalid OTP"});
+    return res.status(401).json({success: false, message: "Invalid OTP"});
 }

@@ -32,6 +32,6 @@ export const fileTypeIcons = {
   js: { icon: FileCode, color: "text-yellow-400" },
   ts: { icon: FileCode, color: "text-blue-400" },
   json: { icon: FileCode, color: "text-green-400" },
-  folder: { icon: Folder, color: "text-yellow-400" },
+  folder: { icon: Folder, color: "text-yellow-400 fill-current" },
   default: { icon: File, color: "text-gray-300" },
 };

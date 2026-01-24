@@ -1,9 +1,7 @@
 import { MoreVertical } from "lucide-react";
 import { getFileIcon } from "../Utilities/getIcon";
-import { formatFileSize } from "../Utilities/SizeConverter";
 import { useState } from "react";
 import ContextMenu from "./ContextMenu";
-import RenameModal from "./RenameFileModal";
 import RenameDirectoryModal from "./RenameDirectoryModal";
 import { Link } from "react-router";
 

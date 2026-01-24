@@ -1,14 +1,11 @@
 import { Outlet } from "react-router"
-import Content from "./Components/Content"
-import Footer from "./Components/Footer"
-import Navbar from "./Components/Navbar"
 
 function App() {
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <Navbar />
-      <Outlet />
-      <Footer />
+    <div className="flex flex-col items-center min-h-screen bg-background w-full">
+      <div className="mx-auto w-[1500px] grow">
+        <Outlet />
+      </div>
     </div>
   )
 }

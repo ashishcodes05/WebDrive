@@ -1,5 +1,5 @@
 import { Cloud, Mail, Lock } from "lucide-react";
-import React, { useState } from "react";
+import { useState } from "react";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router";
 import { useAppContext } from "../Context/AppContext";
@@ -58,9 +58,8 @@ const Login = () => {
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-zinc-950 via-zinc-900 to-black px-4">
       <form
         onSubmit={handleLogin}
-        className="w-full max-w-2xl rounded-3xl border border-zinc-800 bg-zinc-900/80 backdrop-blur px-10 py-10 shadow-2xl"
+        className="w-full max-w-2xl rounded-3xl border border-zinc-800 bg-zinc-900/80 backdrop-blur px-10 py-10 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(99,102,241,0.35)] hover:shadow-[0_0_70px_-15px_rgba(99,102,241,0.55)]"
       >
-        {/* Header */}
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center gap-2 text-indigo-500">
             <Cloud size={42} />
@@ -71,7 +70,6 @@ const Login = () => {
           </p>
         </div>
 
-        {/* Email */}
         <div className="relative mb-4">
           <Mail
             size={18}
@@ -88,7 +86,6 @@ const Login = () => {
           />
         </div>
 
-        {/* Password */}
         <div className="relative mb-3">
           <Lock
             size={18}
@@ -105,7 +102,6 @@ const Login = () => {
           />
         </div>
 
-        {/* Forgot Password */}
         <div className="text-right mb-6">
           <Link
             to="/forgot-password"
@@ -115,7 +111,6 @@ const Login = () => {
           </Link>
         </div>
 
-        {/* Submit */}
         <button
           type="submit"
           disabled={loading}
@@ -124,7 +119,6 @@ const Login = () => {
           {loading ? "Signing in..." : "Login"}
         </button>
 
-        {/* Footer */}
         <p className="text-zinc-400 text-sm mt-5 text-center">
           Don’t have an account?{" "}
           <Link to="/register" className="text-indigo-400 hover:underline">

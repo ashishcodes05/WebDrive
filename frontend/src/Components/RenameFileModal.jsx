@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { createPortal } from "react-dom";
 
 const RenameFileModal = ({ onClose, fileId, filename, renameFileHandler }) => {
     const [newFileName, setNewFileName] = useState(filename);
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
 
             <div
@@ -32,6 +33,7 @@ const RenameFileModal = ({ onClose, fileId, filename, renameFileHandler }) => {
                         onChange={(e) => setNewFileName(e.target.value)}
                         value={newFileName}
                         placeholder="Enter new file name"
+                        autoFocus
                         className="
                             w-full p-3 rounded-lg
                             bg-white/5 text-gray-200
@@ -43,6 +45,13 @@ const RenameFileModal = ({ onClose, fileId, filename, renameFileHandler }) => {
                             transition
                             focus:shadow-[0_0_12px_rgba(79,139,255,0.35)]
                         "
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                e.preventDefault();
+                                renameFileHandler(fileId, newFileName);
+                                onClose();
+                            }
+                        }}
                     />
                 </div>
 
@@ -75,7 +84,8 @@ const RenameFileModal = ({ onClose, fileId, filename, renameFileHandler }) => {
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.querySelector("#portal-root")
     );
 };
 

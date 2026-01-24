@@ -1,5 +1,5 @@
 import { Cloud, CheckCircle, Mail, Lock, User } from "lucide-react";
-import React, { useState } from "react";
+import { useState } from "react";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router";
 
@@ -100,7 +100,7 @@ const Register = () => {
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-zinc-950 via-zinc-900 to-black px-4">
       <form
         onSubmit={handleRegister}
-        className="w-full max-w-2xl rounded-3xl border border-zinc-800 bg-zinc-900/80 backdrop-blur px-10 py-10 shadow-2xl"
+        className="w-full max-w-2xl rounded-3xl border border-zinc-800 bg-zinc-900/80 backdrop-blur px-10 py-10 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(99,102,241,0.35)] hover:shadow-[0_0_70px_-15px_rgba(99,102,241,0.55)]"
       >
         {/* Header */}
         <div className="flex flex-col items-center mb-8">

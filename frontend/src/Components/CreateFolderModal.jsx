@@ -1,5 +1,6 @@
 import React from 'react'
 import { useState } from 'react';
+import { createPortal } from "react-dom";
 import { useAppContext } from '../Context/AppContext';
 import toast from 'react-hot-toast';
 import { useParams } from 'react-router';
@@ -31,7 +32,7 @@ const CreateFolderModal = ({ onClose }) => {
             console.error("Error creating folder:", err);
         }
     }
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
             <div
                 className="absolute inset-0 modal-backdrop bg-black/30 backdrop-blur-sm animate-fade-in"
@@ -60,6 +61,7 @@ const CreateFolderModal = ({ onClose }) => {
                         }}
                         value={foldername}
                         placeholder="Enter new folder name"
+                        autoFocus
                         className="
                             w-full p-3 rounded-lg
                             bg-white/5 text-gray-200
@@ -71,6 +73,12 @@ const CreateFolderModal = ({ onClose }) => {
                             transition
                             focus:shadow-[0_0_12px_rgba(79,139,255,0.35)]
                         "
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                e.preventDefault();
+                                onCreate();
+                            }
+                        }}
                     />
                 </div>
 
@@ -100,7 +108,8 @@ const CreateFolderModal = ({ onClose }) => {
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.querySelector("#portal-root")
     )
 }
 

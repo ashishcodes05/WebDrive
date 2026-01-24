@@ -1,4 +1,5 @@
 import { model, Schema } from "mongoose";
+import bcrypt from "bcrypt"
 
 const otpSchema = new Schema({
     email: {
@@ -20,7 +21,18 @@ const otpSchema = new Schema({
         default: Date.now,
         expires: 600
     }
-}, { strict: "throw"});
+}, { 
+    strict: "throw",
+    methods: {
+        compareOtp: async function(otp){
+            return await bcrypt.compare(otp, this.otp);
+        }
+    }
+});
+
+otpSchema.pre("save", async function(){
+    this.otp = await bcrypt.hash(this.otp, 12);
+})
 
 const Otp = model("Otp", otpSchema);
 

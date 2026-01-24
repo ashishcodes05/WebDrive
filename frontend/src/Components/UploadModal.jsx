@@ -1,4 +1,5 @@
-import React, { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { formatFileSize } from "../Utilities/SizeConverter";
 import { FileIcon, X } from "lucide-react";
 import toast from "react-hot-toast";
@@ -59,6 +60,8 @@ const UploadModal = ({ onClose }) => {
     function handleFiles(e) {
         const files = Array.from(e.target.files);
         if (files.length) addFiles(files);
+        // Allow re-selecting the same file names by clearing the input value
+        e.target.value = "";
     }
 
     function handleDrop(e) {
@@ -125,7 +128,7 @@ const UploadModal = ({ onClose }) => {
         if (success) onClose();
     };
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
             <div
                 className="absolute inset-0 modal-backdrop bg-black/60 backdrop-blur-sm animate-fade-in"
@@ -260,7 +263,8 @@ const UploadModal = ({ onClose }) => {
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.querySelector("#portal-root")
     );
 };
 

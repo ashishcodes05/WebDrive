@@ -7,11 +7,11 @@ import toast from 'react-hot-toast';
 import { useNavigate, useParams } from "react-router";
 import Loader from "./Loader";
 
-const Content = () => {
+const DirectoryView = () => {
   const BASE_URL = "http://localhost:4000"
-  const {dirId} = useParams();
+  const { dirId } = useParams();
   const [sortBy, setSortBy] = useState("name-asc");
-  const { files, setFiles, directories, setDirectories, fetchDirectoryContents, user, loadingUser } = useAppContext();
+  const { files, directories, fetchDirectoryContents, user, loadingUser } = useAppContext();
   const [selectedRow, setSelectedRow] = useState(null);
   const navigate = useNavigate();
 
@@ -115,17 +115,37 @@ const Content = () => {
     fetchDirectoryContents(dirId);
   }, [dirId]);
 
-  if(loadingUser){
+  if (loadingUser) {
     return <Loader />;
   }
 
-  if(!user){
+  if (!user) {
     navigate("/login");
     return;
   }
 
   return (
-    <div className="grow bg-background px-32 py-8 flex flex-col items-center space-y-6">
+    <div className="relative grow bg-background px-32 py-8 flex flex-col items-center space-y-6">
+      {/* Background Gradient Bubbles */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {/* Blue bubble */}
+        <div
+          className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full blur-[140px] opacity-60"
+          style={{ background: "var(--color-primary-accent)" }}
+        />
+
+        {/* Purple bubble */}
+        <div
+          className="absolute top-1/3 -right-40 w-[450px] h-[450px] rounded-full blur-[140px] opacity-40"
+          style={{ background: "var(--color-secondary-accent)" }}
+        />
+
+        {/* Subtle center glow */}
+        <div
+          className="absolute bottom-0 left-1/4 w-[600px] h-[300px] rounded-full blur-[160px] opacity-20"
+          style={{ background: "var(--color-secondary)" }}
+        />
+      </div>
       <div className="flex space-x-6">
         <DetailCard name="Total Files" count={files.length} />
         <DetailCard name="Total Folders" count={directories.length} />
@@ -184,4 +204,4 @@ const Content = () => {
   );
 };
 
-export default Content;
+export default DirectoryView;

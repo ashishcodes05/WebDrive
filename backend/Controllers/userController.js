@@ -55,6 +55,10 @@ export const createUser = async (req, res, next) => {
 
 export const loginUser = async (req, res, next) => {
     try {
+        const sessionId = req.signedCookies.sid;
+        if(sessionId){
+            await Session.findByIdAndDelete(sessionId);
+        }
         const { email, password } = req.body;
         if (!email || !password) {
             return res.status(400).json({ success: false, message: "All fields are required" });

@@ -14,7 +14,14 @@ const transporter = nodemailer.createTransport({
 export const sendEmail = async (email) => {
     const otp = Math.floor(100000 + Math.random() * 900000);
     try {
-        await Otp.updateOne({email}, {otp: otp}, {upsert: true});
+        let foundOtp = await Otp.findOne({email});
+        if(!foundOtp){
+            foundOtp = await Otp.create({email, otp});
+        } else {
+            foundOtp.otp = otp;
+            await foundOtp.save();
+        }
+        
         const info = await transporter.sendMail({
             from: `"Webdrive" <webdrive.cloud@gmail.com>`,
             to: email,
