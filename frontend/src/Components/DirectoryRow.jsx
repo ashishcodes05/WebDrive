@@ -39,10 +39,12 @@ export default function DirectoryRow({directory, selectedRow, renameDirectoryHan
 
     return (
         <>
-            <tr onClick={() => setSelectedRow(id)} className={`border-b border-white/5 hover:bg-white/5 transition ${selectedRow === id ? "bg-white/10" : ""}`}>
+            <tr onClick={() => setSelectedRow(id)} className={`bg-black/20 border-b border-white/5 hover:bg-white/5 transition backdrop-blur-lg ${selectedRow === id ? "bg-white/10" : ""}`}>
                 <td className="px-4 py-3 cursor-pointer">
                     <Link to={`/directory/${id}`} className="flex items-center gap-3">
-                        <Icon className={`w-6 h-6 ${color}`} />
+                        <div className="p-2 rounded-lg bg-white/5 icon-glow">
+                            <Icon className={color} />
+                        </div>
                         <p className="truncate max-w-[350px]">{name}</p>
                     </Link>
                 </td>

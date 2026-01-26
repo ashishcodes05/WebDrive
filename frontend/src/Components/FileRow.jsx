@@ -7,7 +7,7 @@ import RenameFileModal from "./RenameFileModal";
 
 export default function FileRow({ file, renameFileHandler, deleteFileHandler, selectedRow, setSelectedRow }) {
     const BASE_URL = "http://localhost:4000"
-    const {_id : id, filename, extension, size } = file;
+    const { _id: id, name, extension, size } = file;
     const [RenameModalOpen, setRenameModalOpen] = useState(false);
     const readableSize = formatFileSize(size);
     const { icon: Icon, color } = getFileIcon(extension);
@@ -37,11 +37,13 @@ export default function FileRow({ file, renameFileHandler, deleteFileHandler, se
 
     return (
         <>
-            <tr onClick={() => setSelectedRow(id)} className={`border-b border-white/5 hover:bg-white/5 transition ${selectedRow === id ? "bg-white/10" : ""}`}>
+            <tr onClick={() => setSelectedRow(id)} className={`bg-black/20 border-b border-white/5 hover:bg-white/5 transition backdrop-blur-lg ${selectedRow === id ? "bg-white/10" : ""}`}>
                 <td className="px-4 py-3 cursor-pointer">
                     <a href={`${BASE_URL}/file/${id}`} className="flex items-center gap-3">
-                        <Icon className={`w-6 h-6 ${color}`} />
-                        <p className="truncate max-w-[350px]">{filename}</p>
+                        <div className="p-2 rounded-lg bg-white/5 icon-glow">
+                            <Icon className={color} />
+                        </div>
+                        <p className="truncate max-w-[350px]">{name}</p>
                     </a>
                 </td>
 

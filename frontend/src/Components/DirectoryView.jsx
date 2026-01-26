@@ -1,111 +1,111 @@
 import { useEffect, useState } from "react";
+import { History, Star, Trash2, Search, X } from "lucide-react";
 import FileRow from "./FileRow";
 import DetailCard from "./DetailCard";
 import DirectoryRow from "./DirectoryRow";
 import { useAppContext } from "../Context/AppContext";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router";
 import Loader from "./Loader";
+import Footer from "./Footer";
 
 const DirectoryView = () => {
-  const BASE_URL = "http://localhost:4000"
+  const BASE_URL = "http://localhost:4000";
   const { dirId } = useParams();
-  const [sortBy, setSortBy] = useState("name-asc");
-  const { files, directories, fetchDirectoryContents, user, loadingUser } = useAppContext();
-  const [selectedRow, setSelectedRow] = useState(null);
   const navigate = useNavigate();
+
+  const { files, directories, fetchDirectoryContents, loadingUser } =
+    useAppContext();
+
+  const [sortBy, setSortBy] = useState("name-asc");
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const renameFileHandler = async (fileId, newFilename) => {
     try {
-      const response = await fetch(`${BASE_URL}/file/${fileId}`, {
+      const res = await fetch(`${BASE_URL}/file/${fileId}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: 'include',
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ newFilename }),
-      }
-      );
-      const data = await response.json();
+      });
+      const data = await res.json();
       if (data.success) {
         fetchDirectoryContents(dirId);
-        toast.success("File renamed successfully!");
-      } else {
-        toast.error("File rename failed: " + data.message);
-      }
+        toast.success("File renamed successfully");
+      } else toast.error(data.message);
     } catch (err) {
-      console.error("Error renaming file:", err);
+      console.error(err);
     }
-  }
+  };
 
   const deleteFileHandler = async (fileId) => {
     try {
-      const response = await fetch(`${BASE_URL}/file/${fileId}`, {
+      const res = await fetch(`${BASE_URL}/file/${fileId}`, {
         method: "DELETE",
-        credentials: 'include',
+        credentials: "include",
       });
-      const data = await response.json();
+      const data = await res.json();
       if (data.success) {
         fetchDirectoryContents(dirId);
-        toast.success("File deleted successfully!");
-      } else {
-        toast.error("File deletion failed: " + data.message);
-      }
+        toast.success("File deleted successfully");
+      } else toast.error(data.message);
     } catch (err) {
-      console.error("Error deleting file:", err);
+      console.error(err);
     }
-  }
+  };
 
   const renameDirectoryHandler = async (directoryId, newDirectoryName) => {
     try {
-      const response = await fetch(`${BASE_URL}/directory/${directoryId}`, {
+      const res = await fetch(`${BASE_URL}/directory/${directoryId}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: 'include',
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ newDirectoryName }),
-      }
-      );
-      const data = await response.json();
+      });
+      const data = await res.json();
       if (data.success) {
         fetchDirectoryContents(dirId);
-        toast.success("Directory renamed successfully!");
-      } else {
-        toast.error("Directory rename failed: " + data.message);
-      }
+        toast.success("Folder renamed successfully");
+      } else toast.error(data.message);
     } catch (err) {
-      console.error("Error renaming directory:", err);
+      console.error(err);
     }
-  }
+  };
 
   const deleteDirectoryHandler = async (directoryId) => {
     try {
-      const response = await fetch(`${BASE_URL}/directory/${directoryId}`, {
+      const res = await fetch(`${BASE_URL}/directory/${directoryId}`, {
         method: "DELETE",
-        credentials: 'include',
+        credentials: "include",
       });
-      const data = await response.json();
+      const data = await res.json();
       if (data.success) {
         fetchDirectoryContents(dirId);
-        toast.success("Directory deleted successfully!");
-      } else {
-        toast.error("Directory deletion failed: " + data.message);
-      }
+        toast.success("Folder deleted successfully");
+      } else toast.error(data.message);
     } catch (err) {
-      console.error("Error deleting directory:", err);
+      console.error(err);
     }
-  }
+  };
 
-  const sortedFiles = [...files].sort((a, b) => {
-    if (sortBy === "name-asc") return a.filename.localeCompare(b.filename);
-    if (sortBy === "name-desc") return b.filename.localeCompare(a.filename);
+  const filteredFiles = files.filter((file) =>
+    file.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredDirectories = directories.filter((dir) =>
+    dir.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const sortedFiles = [...filteredFiles].sort((a, b) => {
+    if (sortBy === "name-asc") return a.name.localeCompare(b.filename);
+    if (sortBy === "name-desc") return b.name.localeCompare(a.filename);
     if (sortBy === "size-asc") return a.size - b.size;
     if (sortBy === "size-desc") return b.size - a.size;
     return 0;
   });
 
-  const sortedDirectories = [...directories].sort((a, b) => {
+  const sortedDirectories = [...filteredDirectories].sort((a, b) => {
     if (sortBy === "name-asc") return a.name.localeCompare(b.name);
     if (sortBy === "name-desc") return b.name.localeCompare(a.name);
     return 0;
@@ -115,92 +115,163 @@ const DirectoryView = () => {
     fetchDirectoryContents(dirId);
   }, [dirId]);
 
-  if (loadingUser) {
-    return <Loader />;
-  }
-
-  if (!user) {
-    navigate("/login");
-    return;
-  }
+  if (loadingUser) return <Loader />;
 
   return (
-    <div className="relative grow bg-background px-32 py-8 flex flex-col items-center space-y-6">
-      {/* Background Gradient Bubbles */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        {/* Blue bubble */}
-        <div
-          className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full blur-[140px] opacity-60"
-          style={{ background: "var(--color-primary-accent)" }}
-        />
+    <>
+      <div className="relative grow bg-background px-20 py-8 flex flex-col items-center gap-6 min-h-screen">
+        <div className="absolute inset-0 pointer-events-none z-0">
+          <div
+            className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full blur-[140px] opacity-40"
+            style={{ background: "var(--color-primary-accent)" }}
+          />
+          <div
+            className="absolute top-1/3 -right-40 w-[450px] h-[450px] rounded-full blur-[140px] opacity-30"
+            style={{ background: "var(--color-secondary-accent)" }}
+          />
+          <div
+            className="absolute bottom-0 left-1/4 w-[600px] h-[300px] rounded-full blur-[160px] opacity-20"
+            style={{ background: "var(--color-secondary)" }}
+          />
+        </div>
 
-        {/* Purple bubble */}
-        <div
-          className="absolute top-1/3 -right-40 w-[450px] h-[450px] rounded-full blur-[140px] opacity-40"
-          style={{ background: "var(--color-secondary-accent)" }}
-        />
+        <div className="relative z-10 w-full max-w-7xl flex items-center justify-between gap-6">
+          <div className="flex gap-6">
+            <DetailCard name="Total Files" count={files.length} />
+            <DetailCard name="Total Folders" count={directories.length} />
+          </div>
 
-        {/* Subtle center glow */}
-        <div
-          className="absolute bottom-0 left-1/4 w-[600px] h-[300px] rounded-full blur-[160px] opacity-20"
-          style={{ background: "var(--color-secondary)" }}
-        />
+          <div className="flex items-center gap-3">
+            <div
+              className="
+              relative group
+              w-92
+              rounded-xl
+              bg-card-bg/70 backdrop-blur-xl
+              border border-white/10
+              shadow-lg shadow-black/30
+              transition
+              focus-within:border-primary/40
+              focus-within:shadow-primary/20
+            "
+            >
+              <Search
+                size={16}
+                className="
+                absolute left-3 top-1/2 -translate-y-1/2
+                text-text-secondary
+                group-focus-within:text-primary-accent
+                transition
+              "
+              />
+
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search files or folders"
+                className="
+                  w-full
+                  bg-transparent
+                  pl-9 pr-9 py-2.5
+                  text-sm text-white
+                  placeholder:text-text-secondary
+                  outline-none
+                "
+              />
+
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="
+                  absolute right-2 top-1/2 -translate-y-1/2
+                  p-1 rounded-md
+                  text-text-secondary
+                  hover:text-white
+                  hover:bg-white/10
+                  transition
+                "
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={() => navigate("/recent")}
+              className="group flex items-center gap-2 rounded-xl px-4 py-2.5 bg-card-bg/70 backdrop-blur-xl border border-white/10 text-sm text-text-main shadow-lg shadow-black/30 transition hover:bg-white/10"
+            >
+              <History size={18} className="text-primary-accent" />
+              Recent
+            </button>
+
+            <button
+              onClick={() => navigate("/starred")}
+              className="group flex items-center gap-2 rounded-xl px-4 py-2.5 bg-card-bg/70 backdrop-blur-xl border border-white/10 text-sm text-text-main shadow-lg shadow-black/30 transition hover:bg-white/10"
+            >
+              <Star size={18} className="text-primary-accent" />
+              Starred
+            </button>
+
+            <button
+              onClick={() => navigate("/bin")}
+              className="group flex items-center gap-2 rounded-xl px-4 py-2.5 bg-card-bg/70 backdrop-blur-xl border border-white/10 text-sm text-text-main shadow-lg shadow-black/30 transition hover:bg-red-500/10 hover:border-red-500/30"
+            >
+              <Trash2 size={18} className="text-red-400" />
+              Bin
+            </button>
+          </div>
+        </div>
+
+        <div className="relative z-10 w-full max-w-7xl rounded-2xl border border-white/10 bg-card-bg/80 backdrop-blur-xl shadow-xl shadow-black/40 overflow-hidden">
+          <div className="max-h-[calc(100vh-240px)] overflow-y-auto scrollbar-none">
+            <table className="w-full border-collapse text-sm">
+              <thead className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-white/10 text-text-secondary">
+                <tr>
+                  <th className="px-4 py-3 text-left w-[50%]">Name</th>
+                  <th className="px-4 py-3 text-left w-[20%]">Size</th>
+                  <th className="px-4 py-3 text-left w-[15%]">Type</th>
+                  <th className="px-6 py-3 text-right w-[10%]">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-white/5 text-white">
+                {sortedDirectories.map((dir) => (
+                  <DirectoryRow
+                    key={dir._id}
+                    directory={dir}
+                    selectedRow={selectedRow}
+                    setSelectedRow={setSelectedRow}
+                    renameDirectoryHandler={renameDirectoryHandler}
+                    deleteDirectoryHandler={deleteDirectoryHandler}
+                  />
+                ))}
+
+                {sortedFiles.map((file) => (
+                  <FileRow
+                    key={file._id}
+                    file={file}
+                    selectedRow={selectedRow}
+                    setSelectedRow={setSelectedRow}
+                    renameFileHandler={renameFileHandler}
+                    deleteFileHandler={deleteFileHandler}
+                  />
+                ))}
+
+                {sortedFiles.length === 0 &&
+                  sortedDirectories.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="py-10 text-center text-gray-400">
+                        No matching files or folders
+                      </td>
+                    </tr>
+                  )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-      <div className="flex space-x-6">
-        <DetailCard name="Total Files" count={files.length} />
-        <DetailCard name="Total Folders" count={directories.length} />
-        <DetailCard name="Storage Used" count={"1.5 GB"} />
-      </div>
-      <div className="bg-card-bg border border-card-bg rounded-xl min-w-5xl shadow-md overflow-hidden">
-        <table className="border-collapse overflow-y-auto max-h-[calc(100vh-164px)] block scrollbar-none">
-          <thead className="bg-gray-800 border-b border-white/5 sticky top-0 z-10 text-gray-400 text-left text-sm">
-            <tr>
-              <th className="px-4 py-3 w-[50%]">
-                <div className="flex items-center gap-2">
-                  Name
-                  <button
-                    onClick={() =>
-                      setSortBy(sortBy === "name-asc" ? "name-desc" : "name-asc")
-                    }
-                    className="text-xs bg-white/10 px-2 py-1 rounded"
-                  >
-                    {sortBy === "name-asc" ? "▲" : "▼"}
-                  </button>
-                </div>
-              </th>
-              <th className="px-4 py-3 w-[20%]">
-                <div className="flex items-center gap-2">
-                  Size
-                  <button
-                    onClick={() =>
-                      setSortBy(sortBy === "size-asc" ? "size-desc" : "size-asc")
-                    }
-                    className="text-xs bg-white/10 px-2 py-1 rounded"
-                  >
-                    {sortBy === "size-asc" ? "▲" : "▼"}
-                  </button>
-                </div>
-              </th>
-              <th className="px-4 py-3 w-[15%]">Type</th>
-              <th className="px-8 py-3 w-[10%] text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="text-white text-sm">
-            {sortedDirectories.map((dir, idx) => (
-              <DirectoryRow selectedRow={selectedRow} renameDirectoryHandler={renameDirectoryHandler} deleteDirectoryHandler={deleteDirectoryHandler} setSelectedRow={setSelectedRow} key={idx} directory={dir} />
-            ))}
-            {sortedFiles.map((file, idx) => (
-              <FileRow selectedRow={selectedRow} deleteFileHandler={deleteFileHandler} renameFileHandler={renameFileHandler} setSelectedRow={setSelectedRow} key={idx} file={file} />
-            ))}
-            {sortedFiles.length === 0 && sortedDirectories.length === 0 && (
-              <tr>
-                <td colSpan="4" className="text-center text-gray-500 py-6"> No files or directories found.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      <Footer />
+    </>
   );
 };
 

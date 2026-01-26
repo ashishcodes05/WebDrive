@@ -2,7 +2,7 @@ import React from 'react'
 
 const DetailCard = ({name, count}) => {
   return (
-    <div className='bg-card-bg border border-white/10 rounded-xl shadow-lg shadow-black/30 w-60 h-30 p-6 flex flex-col justify-between'>
+    <div className='bg-card-bg/20 border border-white/10 rounded-xl shadow-lg shadow-black/30 w-60 h-30 p-6 flex flex-col justify-between backdrop-blur-lg'>
         <div>
             <h2 className='text-white text-lg font-semibold'>{name}</h2>
         </div>

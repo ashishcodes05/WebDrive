@@ -1,91 +1,103 @@
 import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router";
+import {
+  FolderOpen,
+  File,
+  Pencil,
+  Download,
+  Trash2,
+} from "lucide-react";
 
-export default function ContextMenu({ x, y, onRename, onDelete, fileId, directoryId, onClose, isDirectory }) {
-    const BASE_URL = "http://localhost:4000";
-    const menuRef = useRef();
+export default function ContextMenu({
+  x,
+  y,
+  onRename,
+  onDelete,
+  fileId,
+  directoryId,
+  onClose,
+  isDirectory,
+}) {
+  const BASE_URL = "http://localhost:4000";
+  const menuRef = useRef(null);
 
-    useEffect(() => {
-        function handleClick(e) {
-            if (menuRef.current && !menuRef.current.contains(e.target)) onClose();
-        }
-        document.addEventListener("mousedown", handleClick);
-        return () => document.removeEventListener("mousedown", handleClick);
-    }, []);
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        onClose();
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [onClose]);
 
-    return createPortal(
-        <div
-            ref={menuRef}
-            style={{
-                position: "fixed",
-                top: y,
-                left: x,
-                zIndex: 9999,
-            }}
-            className="
-                bg-[#0f1629]/95
-                border border-white/10
-                rounded-xl
-                shadow-xl shadow-black/50
-                animate-pop
-                w-40
-                overflow-hidden
-                backdrop-blur-sm
-            "
+  const itemClass =
+    "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-200 hover:bg-white/10 transition w-full";
+
+  return createPortal(
+    <div
+      ref={menuRef}
+      style={{ position: "fixed", top: y, left: x, zIndex: 9999 }}
+      className="
+        w-44
+        bg-[#0f1629]/95
+        border border-white/10
+        rounded-xl
+        shadow-xl shadow-black/50
+        backdrop-blur-sm
+        overflow-hidden
+        animate-pop
+      "
+    >
+      {/* Open */}
+      {!isDirectory ? (
+        <a href={`${BASE_URL}/file/${fileId}`} className={itemClass}>
+          <File className="w-4 h-4 text-primary-accent" />
+          Open
+        </a>
+      ) : (
+        <Link to={`/directory/${directoryId}`} className={itemClass}>
+          <FolderOpen className="w-4 h-4 text-primary-accent" />
+          Open
+        </Link>
+      )}
+
+      {/* Rename */}
+      <button onClick={onRename} className={itemClass}>
+        <Pencil className="w-4 h-4 text-text-secondary" />
+        Rename
+      </button>
+
+      {/* Download */}
+      {!isDirectory && (
+        <a
+          href={`${BASE_URL}/file/${fileId}?action=download`}
+          className={itemClass}
         >
-            {!isDirectory ? (<a
-                href={`${BASE_URL}/file/${fileId}`}
-                className="
-                    block px-4 py-2.5 
-                    text-gray-200 text-sm 
-                    hover:bg-white/10 transition
-                "
-            >
-                Open
-            </a>) : (
-                <Link to={`/directory/${directoryId}`} className="block px-4 py-2.5 
-                    text-gray-200 text-sm 
-                    hover:bg-white/10 transition">
-                    Open
-                </Link>
-            )}
+          <Download className="w-4 h-4 text-emerald-400" />
+          Download
+        </a>
+      )}
 
-            <button
-                onClick={onRename}
-                className="
-                    w-full text-left px-4 py-2.5 
-                    text-gray-200 text-sm 
-                    hover:bg-white/10 transition
-                "
-            >
-                Rename
-            </button>
+      {/* Divider */}
+      <div className="h-px bg-white/10 my-1" />
 
-            {!isDirectory && (
-                <a
-                    href={`${BASE_URL}/file/${fileId}?action=download`}
-                    className="
-                        block px-4 py-2.5 
-                        text-gray-200 text-sm 
-                        hover:bg-white/10 transition
-                    "
-                >
-                    Download
-                </a>
-            )}
-
-            <button
-                onClick={onDelete}
-                className="
-                    w-full text-left px-4 py-2.5 
-                    text-red-400 text-sm 
-                    hover:bg-red-500/20 transition
-                "
-            >
-                Delete
-            </button>
-        </div>,
-        document.querySelector("#portal-root")
-    );
+      {/* Delete */}
+      <button
+        onClick={onDelete}
+        className="
+          flex items-center gap-3
+          w-full px-4 py-2.5
+          text-sm text-red-400
+          hover:bg-red-500/20
+          transition
+        "
+      >
+        <Trash2 className="w-4 h-4" />
+        Delete
+      </button>
+    </div>,
+    document.querySelector("#portal-root")
+  );
 }

@@ -80,3 +80,7 @@
   background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(6px);
 }
+
+.icon-glow:hover {
+filter: drop-shadow(0 0 6px currentColor);
+}

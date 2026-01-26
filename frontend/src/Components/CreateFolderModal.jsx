@@ -41,12 +41,13 @@ const CreateFolderModal = ({ onClose }) => {
             <div
                 className="
                     relative z-50 w-full max-w-lg
-                    bg-[#0f1629]/95 
+                    bg-[#0f1629]/40
                     border border-white/10 
                     rounded-2xl 
                     shadow-2xl shadow-black/40
                     p-8 space-y-6
                     animate-scale-in
+                    backdrop-blur
                 "
             >
                 <h1 className="text-white text-xl font-semibold tracking-wide">

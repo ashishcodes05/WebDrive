@@ -140,11 +140,12 @@ const UploadModal = ({ onClose }) => {
             <div
                 className="
                     relative z-50 max-w-lg w-full p-8
-                    bg-[#0f1629]/95 rounded-2xl
+                    bg-[#0f1629]/40 rounded-2xl
                     border border-white/10
                     shadow-2xl shadow-black/40
                     animate-scale-in
                     space-y-6
+                    backdrop-blur
                 "
             >
                 <h2 className="text-xl text-white font-semibold tracking-wide">

@@ -3,6 +3,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router";
 import { useAppContext } from "../Context/AppContext";
+import { useGoogleLogin } from "@react-oauth/google";
 
 const Login = () => {
   const BASE_URL = "http://localhost:4000";
@@ -54,6 +55,31 @@ const Login = () => {
     }
   };
 
+  const loginWithGoogle = useGoogleLogin({
+    scope: "openid email profile",
+    onSuccess: async codeResponse => {
+      const response = await fetch(`${BASE_URL}/auth/google-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: codeResponse.code }),
+        credentials: "include",
+      })
+      const data = await response.json();
+      if (data.success) {
+        toast.success("Logged in with Google successfully");
+        await fetchUserData();
+        setLoadingUser(false);
+        navigate("/");
+      }
+    },
+    onError: () => {
+      console.log("Google login failed");
+      toast.error("Google login failed");
+    },
+    flow: 'auth-code',
+  });
+
+
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-zinc-950 via-zinc-900 to-black px-4">
       <form
@@ -62,11 +88,11 @@ const Login = () => {
       >
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center gap-2 text-indigo-500">
-            <Cloud size={42} />
-            <h1 className="text-3xl font-semibold text-white">Login</h1>
+            <Cloud className="text-primary-accent fill-current" size={42} />
+            <h1 className="text-3xl font-semibold text-white">Welcome back to WebDrive</h1>
           </div>
           <p className="text-zinc-400 mt-2">
-            Welcome back, sign in to continue
+            Sign in to continue
           </p>
         </div>
 
@@ -125,6 +151,36 @@ const Login = () => {
             Register
           </Link>
         </p>
+        <div className="flex items-center my-6 gap-3">
+          <div className="h-px bg-white/10 flex-1" />
+          <span className="text-sm text-text-secondary">OR</span>
+          <div className="h-px bg-white/10 flex-1" />
+        </div>
+        <button
+          type="button"
+          onClick={() => loginWithGoogle()}
+          className="
+            w-full h-12
+            flex items-center justify-center gap-3
+            rounded-full
+            bg-white text-gray-800
+            font-medium
+            border border-gray-300
+            hover:bg-gray-50
+            active:bg-gray-100
+            transition
+            shadow-sm
+          "
+        >
+          <svg width="18" height="18" viewBox="0 0 48 48">
+            <path fill="#EA4335" d="M24 9.5c3.3 0 6.3 1.1 8.6 3.2l6.4-6.4C34.8 2.6 29.7 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.7 6C12.5 13.2 17.8 9.5 24 9.5z" />
+            <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-2.8-.4-4.1H24v7.7h12.7c-.6 3.1-2.4 5.7-5.1 7.4l7.9 6.1c4.6-4.2 7.3-10.4 7.3-17.1z" />
+            <path fill="#FBBC05" d="M10.4 28.9c-.5-1.4-.8-2.9-.8-4.4s.3-3 .8-4.4l-7.7-6c-1.6 3.2-2.6 6.8-2.6 10.4s.9 7.2 2.6 10.4l7.7-6z" />
+            <path fill="#34A853" d="M24 48c5.7 0 10.8-1.9 14.4-5.1l-7.9-6.1c-2.2 1.5-5 2.4-8.5 2.4-6.2 0-11.5-3.7-13.7-8.8l-7.7 6C6.6 42.6 14.6 48 24 48z" />
+          </svg>
+
+          <span>Continue with Google</span>
+        </button>
       </form>
     </div>
   );

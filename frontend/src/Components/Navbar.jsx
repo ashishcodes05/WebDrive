@@ -24,7 +24,7 @@ const Navbar = () => {
       });
       const data = await response.json();
       if (data.success) {
-        navigate("/Login");
+        navigate("/");
         setUser(null);
         toast.success(data.message);
       }
@@ -41,7 +41,7 @@ const Navbar = () => {
       });
       const data = await response.json();
       if (data.success) {
-        navigate("/Login");
+        navigate("/");
         setUser(null);
         toast.success(data.message);
       }
@@ -51,7 +51,7 @@ const Navbar = () => {
     }
   }
   return (<nav class="z-50 flex items-center justify-between h-24 w-full py-6 px-6 md:px-16 lg:px-24 xl:px-32 backdrop-blur">
-    <div className="flex items-center">
+    <div className="flex items-center flex-1/4">
       <Cloud className="text-primary-accent fill-current" size={40} />
       <span className="text-2xl text-primary font-bold ml-2">
         <i>Web</i>
@@ -61,7 +61,7 @@ const Navbar = () => {
       </span>
     </div>
 
-    <div className="hidden md:flex items-center gap-8 transition duration-500 text-lg text-white">
+    <div className="hidden md:flex items-center gap-8 transition duration-500 text-lg text-white flex-2/4 justify-center">
       <NavLink to="/" end className={({ isActive }) => `hover:text-slate-300 transition ${isActive ? 'text-secondary-accent font-semibold border-b-2 border-primary-accent' : ''}`}>
         Home
       </NavLink>
@@ -77,7 +77,7 @@ const Navbar = () => {
     </div>
 
     {user ? (
-      <div className="hidden md:flex space-x-8 text-md">
+      <div className="hidden md:flex space-x-8 text-md flex-1/4 justify-end">
         <button onClick={() => setOpenUploadModal(true)} className='flex flex-col items-center hover:text-primary-accent hover:scale-105 transition-transform duration-200 cursor-pointer'>
           <CloudUpload className='text-secondary-accent' size={25} />
           <span className='text-sm text-primary-accent font-bold'>Upload</span>
@@ -89,11 +89,13 @@ const Navbar = () => {
         <button onClick={() => setToggleUserMenu(!toggleUserMenu)} className='flex flex-col items-center hover:text-primary-accent hover:scale-105 transition-transform duration-200 cursor-pointer'>
           <User className='text-secondary-accent fill-current' size={25} />
           <span className='text-sm text-primary-accent font-bold'>Profile</span>
-          {toggleUserMenu && <UserMenu user={user} onLogout={onLogout} onLogoutAll={onLogoutAll} />}
+          {toggleUserMenu && <UserMenu user={user} onLogout={onLogout} onLogoutAll={onLogoutAll} onClose={() => setToggleUserMenu(false)} onUpgrade={() => {
+            navigate("/pricing")
+          }} />}
         </button>
       </div>
     ) : (
-      <div class="hidden md:block space-x-3 text-md">
+      <div class="hidden md:block space-x-3 text-md flex-1/4 justify-end">
         <button class="px-6 py-2 bg-primary-accent hover:bg-primary-accent/80 transition text-white rounded-md">
           Get started
         </button>
