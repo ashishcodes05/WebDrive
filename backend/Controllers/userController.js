@@ -3,6 +3,7 @@ import User from "../Models/userModel.js";
 import Directory from "../Models/directoryModel.js";
 import Session from "../Models/sessionModel.js";
 import File from "../Models/fileModel.js";
+import { rm } from "fs/promises";
 
 export const getUser = (req, res) => {
     const user = req.user;
@@ -150,7 +151,11 @@ export const deleteUser = async(req, res, next) => {
         const sessionId = req.signedCookies.sid;
         await Session.findByIdAndDelete(sessionId);
         await Directory.deleteMany({userId: user._id});
-        await File.deleteMany({userId: user._id});
+        const files = await File.find({userId: user._id});
+        for(const {id, extension} of files){
+            await rm(`./Storage/${id}${extension}`);
+        }
+        await File.deleteMany({userId: user._id})
         await user.deleteOne();
         return res.status(200).json({success: true, message: "User Deleted Successfully"});
     } catch (err){
