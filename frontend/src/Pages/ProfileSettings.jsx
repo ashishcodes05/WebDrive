@@ -9,9 +9,12 @@ import {
     Trash2,
     Cloud
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Loader from "../Components/Loader";
+import { Link, useNavigate } from "react-router";
+import toast from "react-hot-toast";
+import DeleteAccountModal from "../Components/DeleteAccountModal";
 import { useAppContext } from "../Context/AppContext";
-import { Link } from "react-router";
 
 const PasswordInput = ({ label, description, value, onChange }) => {
     const [show, setShow] = useState(false);
@@ -44,15 +47,144 @@ const PasswordInput = ({ label, description, value, onChange }) => {
 };
 
 const ProfileSettingsPage = () => {
-    const { user } = useAppContext();
+    const BASE_URL = "http://localhost:4000"
+    const { fetchUserData, user, setUser, loadingUser, setLoadingUser } = useAppContext();
+
+    const [saving, setSaving] = useState(false);
+    const [avatar, setAvatar] = useState(null);
     const [name, setName] = useState(user?.name || "");
 
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [updatingPassword, setUpdatingPassword] = useState(false);
+    const [hasPassword, setHasPassword] = useState(user?.hasPassword || false);
 
-    const hasPassword = user?.hasPassword;
+    const [openDeleteModal, setOpenDeleteModal] = useState(false);
+    const [deletingAccount, setDeletingAccount] = useState(false);
 
+    const navigate = useNavigate();
+
+    // const fetchUserData = async () => {
+    //     try {
+    //       const response = await fetch(`${BASE_URL}/user/`, {
+    //         method: "GET",
+    //         credentials: 'include'
+    //       });
+    //       const data = await response.json();
+    //       if (data.success) {
+    //         console.log(data.user)
+    //         setUser(data.user);
+    //         setName(data.user.name);
+    //         setHasPassword(data.user.hasPassword);
+    //       } else {
+    //         toast.error("Please login to access profile settings");
+    //         navigate("/login");
+    //       }
+    //     } catch (err) {
+    //       console.error("Error fetching user data:", err);
+    //     } finally {
+    //       setLoadingUser(false);
+    //     }
+    //   }
+    
+      const updateProfile = async() => {
+        if(name === user?.name) {
+            toast.error("No changes made to update profile");
+            return;
+        }
+        try {
+            const response = await fetch(`${BASE_URL}/user/update-profile`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: 'include',
+            body: JSON.stringify({ newName: name })
+          });
+          const data = await response.json();
+            if (data.success) {
+                toast.success("Profile updated successfully");
+                setUser(data.user);
+            } else {
+                toast.error(data.message);
+            }
+        } catch (err) {
+            console.error("Error updating profile:", err);
+        } finally {
+            setSaving(false);
+        }
+      }
+      const updatePassword = async() => {
+        if(!hasPassword && newPassword.length === 0){
+            toast.error("Password cannot be empty");
+            return;
+        }
+        if(hasPassword && currentPassword.length === 0){
+            toast.error("Current Password is required");
+            return;
+        }
+        if(newPassword.length < 8){
+            toast.error("Password must be at least 8 characters long");
+            return;
+        }
+        if(newPassword !== confirmPassword){
+            toast.error("New Password and Confirm Password do not match");
+            return;
+        }
+        try {
+            const response = await fetch(`${BASE_URL}/user/update-password`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: 'include',
+            body: JSON.stringify({ newPassword, currentPassword })
+          });
+          const data = await response.json();
+          if(data.success) {
+            toast.success(data.message);
+            setCurrentPassword("");
+            setNewPassword("");
+            setConfirmPassword("");
+            fetchUserData();
+          } else {
+            toast.error(data.message);
+          }
+        } catch (err) {
+            console.error("Error updating password:", err);
+        } finally {
+            setUpdatingPassword(false);
+        }
+      }
+      const deleteAccount = async() => {
+        try {
+            const response = await fetch(`${BASE_URL}/user/delete-account`, {
+            method: "DELETE",
+            credentials: 'include',
+          });
+          const data = await response.json();
+          if(data.success) {
+            toast.success("Account deleted successfully");
+            navigate("/");
+            setUser(null);
+          } else {
+            toast.error(data.message);
+          }
+        } catch (err) {
+            console.error("Error deleting account:", err);
+        } finally {
+            setDeletingAccount(false);
+        }
+      }
+      useEffect(() => {
+        if(user){
+            setName(user.name);
+            setHasPassword(user.hasPassword);
+        }
+      }, [user]);
+    
+    if (loadingUser) return <Loader text="Loading profile..." />;
     return (
         <div className="relative min-h-screen bg-[var(--color-background)] px-6 py-14 text-white overflow-hidden">
 
@@ -89,7 +221,7 @@ const ProfileSettingsPage = () => {
 
                     <div className="flex items-center gap-6">
                         <div className="relative h-20 w-20 shrink-0 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] flex items-center justify-center text-2xl font-semibold">
-                            {user.picture ? (
+                            {user?.picture ? (
                                 <img
                                     src={user.picture}
                                     className="h-full w-full rounded-full object-cover"
@@ -145,8 +277,11 @@ const ProfileSettingsPage = () => {
                     </div>
 
                     <div className="flex justify-end">
-                        <button className="rounded-xl bg-[var(--color-primary)] px-6 py-2.5 text-sm font-medium shadow-lg shadow-blue-500/20 hover:bg-[var(--color-primary-accent)]">
-                            Save changes
+                        <button onClick={() => {
+                            setSaving(true);
+                            updateProfile();
+                        }} className="rounded-xl bg-[var(--color-primary)] px-6 py-2.5 text-sm font-medium shadow-lg shadow-blue-500/20 hover:bg-[var(--color-primary-accent)]">
+                            {saving ? "Saving..." : "Save changes"}
                         </button>
                     </div>
                 </section>
@@ -188,8 +323,11 @@ const ProfileSettingsPage = () => {
                     </div>
 
                     <div className="flex justify-end">
-                        <button className="rounded-xl bg-[var(--color-secondary)] px-6 py-2.5 text-sm font-medium shadow-lg shadow-purple-500/20 hover:bg-[var(--color-secondary-accent)]">
-                            Update password
+                        <button onClick={() => {
+                            setUpdatingPassword(true);
+                            updatePassword();
+                        }} className="rounded-xl bg-[var(--color-secondary)] px-6 py-2.5 text-sm font-medium shadow-lg shadow-purple-500/20 hover:bg-[var(--color-secondary-accent)]">
+                            {updatingPassword ? "Updating..." : "Update password"}
                         </button>
                     </div>
                 </section>
@@ -212,13 +350,27 @@ const ProfileSettingsPage = () => {
                             Disable account
                         </button>
 
-                        <button className="flex items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700">
+                        <button onClick={() => {
+                            setOpenDeleteModal(true);
+                        }} className="flex items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-700">
                             <Trash2 size={16} />
                             Delete account
                         </button>
                     </div>
                 </section>
             </div>
+            {openDeleteModal && (
+                <DeleteAccountModal
+                    deletingAccount={deletingAccount}
+                    isOpen={openDeleteModal}
+                    onClose={() => setOpenDeleteModal(false)}
+                    onConfirm={() => {
+                        setDeletingAccount(true);
+                        deleteAccount();
+                        setOpenDeleteModal(false);
+                    }}
+                />
+            )}
         </div>
     );
 };

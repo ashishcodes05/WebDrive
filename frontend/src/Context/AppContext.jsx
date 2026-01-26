@@ -37,6 +37,7 @@ export function AppProvider({ children }) {
       });
       const data = await response.json();
       if (data.success) {
+        console.log(data.user)
         setUser(data.user);
       }
     } catch (err) {

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 
 const UserMenu = ({ user, onLogout, onLogoutAll, onUpgrade, onClose }) => {
+  const [picture, setPicture] = useState(user?.picture || null);
   const menuRef = useRef(null);
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -18,7 +19,11 @@ const UserMenu = ({ user, onLogout, onLogoutAll, onUpgrade, onClose }) => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [onClose]);
-  console.log(user.picture)
+  useEffect(() => {
+    if(user?.picture){
+      setPicture(user.picture);
+    }
+  }, [user]);
   return createPortal(
     <div
       ref={menuRef}
@@ -36,7 +41,7 @@ const UserMenu = ({ user, onLogout, onLogoutAll, onUpgrade, onClose }) => {
       <div className="px-5 py-4 border-b border-white/10">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary-accent to-secondary-accent flex items-center justify-center text-white font-semibold">
-            {user.picture ? <img src={`${user.picture}`} alt={user?.name || "User"} className="w-10 h-10 rounded-full object-cover" /> : user?.name?.[0]?.toUpperCase() || "U"}
+            {picture ? <img src={`${picture}`} alt={user?.name || "User"} className="w-10 h-10 rounded-full object-cover" /> : user?.name?.[0]?.toUpperCase() || "U"}
           </div>
           <div className="min-w-0">
             <p className="text-white font-medium truncate">

@@ -2,6 +2,7 @@ import mongoose, { Types } from "mongoose";
 import User from "../Models/userModel.js";
 import Directory from "../Models/directoryModel.js";
 import Session from "../Models/sessionModel.js";
+import File from "../Models/fileModel.js";
 
 export const getUser = (req, res) => {
     const user = req.user;
@@ -10,7 +11,7 @@ export const getUser = (req, res) => {
         .json({
             success: true,
             message: "User Data Fetched Successfully",
-            user: { name: user.name, email: user.email, picture: user.picture },
+            user: { name: user.name, email: user.email, picture: user.picture, hasPassword: user.hasPassword },
         });
 };
 
@@ -105,6 +106,53 @@ export const logoutAllDevices = async(req, res, next) => {
         const user = req.user;
         await Session.deleteMany({userId: user._id});
         return res.status(200).json({ success: true, message: "Logout Successfully from all devices" });
+    } catch (err){
+        next(err);
+    }
+}
+
+export const updateUserProfile = async(req, res, next) => {
+    try {
+        const user = req.user;
+        const { newName } = req.body;
+        const updatedUser = await User.findByIdAndUpdate(user.id, { name: newName }, {runValidators: true, new: true});
+        return res.status(200).json({success: true, message: "UserName has been changed successfully", user: updatedUser})
+    } catch(err){
+        next(err)
+    }
+}
+
+export const updatePassword = async(req, res, next) => {
+    try {
+        const user = req.user;
+        if(!user.hasPassword){
+            const { newPassword } = req.body;
+            user.password = newPassword;
+            await user.save();
+            return res.status(200).json({success: true, message: "Password has been updated Successfully"});
+        }
+        const { newPassword, currentPassword } = req.body;
+        const isValid = await user.comparePassword(currentPassword);
+        if(!isValid){
+            return res.status(401).json({success: false, message: "Current Password is incorrect"});
+        }
+        user.password = newPassword;
+        await user.save();
+        return res.status(200).json({success: true, message: "Password has been updated Successfully"});
+    } catch(err){
+        next(err)
+    }
+}
+
+export const deleteUser = async(req, res, next) => {
+    try {
+        const user = req.user;
+        const sessionId = req.signedCookies.sid;
+        await Session.findByIdAndDelete(sessionId);
+        await Directory.deleteMany({userId: user._id});
+        await File.deleteMany({userId: user._id});
+        await user.deleteOne();
+        return res.status(200).json({success: true, message: "User Deleted Successfully"});
     } catch (err){
         next(err);
     }
