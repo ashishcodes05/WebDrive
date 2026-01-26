@@ -5,7 +5,7 @@ const directorySchema = new Schema({
         type: String,
         required: true
     },
-    parentDir: {
+    parentDirectoryId: {
         type: Schema.Types.ObjectId,
         default: null,
         ref: "Directory"
@@ -14,6 +14,15 @@ const directorySchema = new Schema({
         type: Schema.Types.ObjectId,
         required: true,
         ref: "User"
+    },
+    isStarred: {
+        type: Boolean,
+        default: false
+    },
+    deletedAt: {
+        type: Date,
+        default: null,
+        expires: 30 * 24 * 60 * 60
     }
 },
     {

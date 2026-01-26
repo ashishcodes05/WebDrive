@@ -13,8 +13,8 @@ export const getDirectoryById = async (req, res, next) => {
         message: "Directory Not Found!"
       })
     }
-    const files = await File.find({ parDirId: id }).lean();
-    const directories = await Directory.find({ parentDir: id }).lean();
+    const files = await File.find({ parentDirectoryId: id }).lean();
+    const directories = await Directory.find({ parentDirectoryId: id }).lean();
     return res.status(200).json({
       success: true,
       message: "Directory Found!",
@@ -43,7 +43,7 @@ export const createDirectory = async (req, res, next) => {
   try {
     await Directory.insertOne({
       name: foldername,
-      parentDir: parDirId,
+      parentDirectoryId: parDirId,
       userId: user._id,
     });
     return res.status(200).json({ success: true, message: "Folder Created Successfully" });
@@ -74,13 +74,13 @@ export const renameDirectory = async (req, res, next) => {
 }
 
 const deleteHandler = async (directoryData, user) => {
-  const filesData = await File.find({ parDirId: directoryData._id }).select("_id extension").lean();
+  const filesData = await File.find({ parentDirectoryId: directoryData._id }).select("_id extension").lean();
   const fileIds = [];
   for (const file of filesData) {
     fileIds.push(file._id);
     await rm(`./Storage/${file._id.toString()}${file.extension}`);
   }
-  const directoriesData = await Directory.find({ parentDir: directoryData._id }).select("_id").lean();
+  const directoriesData = await Directory.find({ parentDirectoryId: directoryData._id }).select("_id").lean();
   let data = { files: [], directories: [] };
   const directoryIds = [];
   for (const directory of directoriesData) {

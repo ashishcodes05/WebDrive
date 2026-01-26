@@ -1,7 +1,7 @@
 import { model, Schema } from "mongoose";
 
 const fileSchema = new Schema({
-    filename: {
+    name: {
         type: String,
         minLength: [1, "The filename should consist of atleast one character"],
         required: true
@@ -14,7 +14,7 @@ const fileSchema = new Schema({
         type: Number,
         required: true
     },
-    parDirId: {
+    parentDirectoryId: {
         type: Schema.Types.ObjectId,
         required: true,
         ref: "Directory"
@@ -23,6 +23,15 @@ const fileSchema = new Schema({
         type: Schema.Types.ObjectId,
         required: true,
         ref: "User"
+    },
+    isStarred: {
+        type: Boolean,
+        default: false
+    },
+    deletedAt: {
+        type: Date,
+        default: null,
+        expires: 30 * 24 * 60 * 60
     }
 }, 
 {

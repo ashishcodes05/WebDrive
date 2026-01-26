@@ -13,8 +13,10 @@ await db.command({
             required: [
                 '_id',
                 'name',
-                'parentDir',
-                'userId'
+                'parentDirectoryId',
+                'userId',
+                'deletedAt',
+                'isStarred'
             ],
             properties: {
                 _id: {
@@ -25,7 +27,7 @@ await db.command({
                     minLength: 1,
                     description: "Name should consists of atleast one character"
                 },
-                parentDir: {
+                parentDirectoryId: {
                     bsonType: [
                         'null',
                         'objectId'
@@ -33,6 +35,12 @@ await db.command({
                 },
                 userId: {
                     bsonType: 'objectId'
+                },
+                isStarred: {
+                    bsonType: 'bool'
+                },
+                deletedAt: {
+                    bsonType: ['date', 'null']
                 },
                 __v: {
                     bsonType: 'int'
@@ -53,10 +61,12 @@ await db.command({
             required: [
                 '_id',
                 'extension',
-                'filename',
-                'parDirId',
+                'name',
+                'parentDirectoryId',
                 'size',
-                'userId'
+                'userId',
+                'deletedAt',
+                'isStarred'
             ],
             properties: {
                 _id: {
@@ -65,12 +75,12 @@ await db.command({
                 extension: {
                     bsonType: 'string'
                 },
-                filename: {
+                name: {
                     bsonType: 'string',
                     minLength: 1,
                     description: "Filename should consist of atleast one character"
                 },
-                parDirId: {
+                parentDirectoryId: {
                     bsonType: 'objectId'
                 },
                 size: {
@@ -78,6 +88,12 @@ await db.command({
                 },
                 userId: {
                     bsonType: 'objectId'
+                },
+                isStarred: {
+                    bsonType: 'bool'
+                },
+                deletedAt: {
+                    bsonType: ['date', 'null']
                 },
                 __v: {
                     bsonType: 'int'
@@ -99,8 +115,8 @@ await db.command({
                 '_id',
                 'email',
                 'name',
-                'password',
-                'rootDirectory'
+                'rootDirectory',
+                'hasPassword'
             ],
             properties: {
                 _id: {
@@ -116,6 +132,9 @@ await db.command({
                     minLength: 3,
                     description: "User name should consist of atleast 3 characters"
                 },
+                hasPassword: {
+                    bsonType: 'bool',
+                },
                 password: {
                     bsonType: 'string',
                     minLength: 8,
@@ -123,6 +142,9 @@ await db.command({
                 },
                 rootDirectory: {
                     bsonType: 'objectId'
+                },
+                picture: {
+                    bsonType: ['string', 'null']
                 },
                 __v: {
                     bsonType: 'int'

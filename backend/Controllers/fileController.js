@@ -6,7 +6,7 @@ import Directory from "../Models/directoryModel.js";
 export const getFileById = async(req, res) => {
   const user = req.user;
   const { id } = req.params;
-  const fileData = await File.findOne({_id: id, userId: user._id}).select("filename extension").lean();
+  const fileData = await File.findOne({_id: id, userId: user._id}).select("name extension").lean();
   if (!fileData) {
     return res.status(404).json({
       success: false,
@@ -16,7 +16,7 @@ export const getFileById = async(req, res) => {
   const { action } = req.query;
   if (action && action === "download") {
     // res.set("Content-Disposition", `attachment; filename=${fileData.filename}`);
-    return res.download(`${process.cwd()}/Storage/${id}${fileData.extension}`, fileData.filename);
+    return res.download(`${process.cwd()}/Storage/${id}${fileData.extension}`, fileData.name);
   }
   res.sendFile(`${process.cwd()}/Storage/${id}${fileData.extension}`, (err) => {
     if (res.headersSent) return;
@@ -52,14 +52,14 @@ export const uploadFiles = async (req, res, next) => {
     const filesData = [];
     uploadedFiles.forEach((file) => {
       const { _id } = file;
-      const { originalname: filename } = file;
+      const { originalname: name } = file;
       const extension = path.extname(file.originalname);
       const { size } = file;
       filesData.push({
         _id,
-        parDirId,
+        parentDirectoryId : parDirId,
         userId: user._id,
-        filename,
+        name,
         extension,
         size,
       })
@@ -82,7 +82,7 @@ export const renameFileById = async (req, res, next) => {
     });
   }
   try {
-    const file = await File.findOneAndUpdate({_id: id, userId: user._id}, {$set: {filename: newFilename}}, {runValidators: true});
+    const file = await File.findOneAndUpdate({_id: id, userId: user._id}, {$set: {name: newFilename}}, {runValidators: true});
     if(!file){
       return res.status(404).json({ success: false, message: "File Not Found" });
     }

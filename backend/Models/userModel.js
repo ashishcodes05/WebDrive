@@ -21,13 +21,20 @@ const userSchema = new Schema({
     password: {
         type: String,
         minLength: [8, "The password should be of 8 characters"],
-        required: true,
         trim: true
+    },
+    hasPassword: {
+        type: Boolean,
+        default: false
     },
     rootDirectory: {
         type: Schema.Types.ObjectId,
         ref: "Directory",
         required: true
+    },
+    picture: {
+        type: String,
+        default: null
     }
 },
     {
@@ -42,6 +49,7 @@ const userSchema = new Schema({
 
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
+  this.hasPassword = true;
   this.password = await bcrypt.hash(this.password, 12);
 });
 

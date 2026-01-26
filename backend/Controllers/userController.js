@@ -10,18 +10,18 @@ export const getUser = (req, res) => {
         .json({
             success: true,
             message: "User Data Fetched Successfully",
-            user: { name: user.name, email: user.email },
+            user: { name: user.name, email: user.email, picture: user.picture },
         });
 };
 
 export const createUser = async (req, res, next) => {
-    const session = await mongoose.startSession();
+    const mongooseSession = await mongoose.startSession();
     try {
         const { name, email, password } = req.body;
         if (!name || !email || !password) {
             return res.status(400).json({ success: false, message: "All fields are required" });
         }
-        session.startTransaction();
+        mongooseSession.startTransaction();
         const userId = new Types.ObjectId();
         const directoryId = new Types.ObjectId();
         await User.insertOne({
@@ -30,17 +30,17 @@ export const createUser = async (req, res, next) => {
             email,
             password,
             rootDirectory: directoryId
-        })
+        }, {mongooseSession})
         await Directory.insertOne({
             _id: directoryId,
             name: `root-${email}`,
-            parentDir: null,
+            parentDirectoryId: null,
             userId,
-        })
-        await session.commitTransaction();
+        }, {mongooseSession})
+        await mongooseSession.commitTransaction();
         return res.status(201).json({ success: true, message: "User Registered Successfully" });
     } catch (err) {
-        await session.abortTransaction(); //rollback
+        await mongooseSession.abortTransaction(); //rollback
         console.log(err);
         if (err.code === 121) {
             return res.status(400).json({ success: false, message: "Invalid Inputs" });
