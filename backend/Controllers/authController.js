@@ -5,6 +5,8 @@ import Session from "../Models/sessionModel.js";
 import User from "../Models/userModel.js";
 import { fetchUserFromGoogle } from "../Services/googleAuthService.js";
 import { sendEmail } from "../Services/sendEmailService.js";
+import e from "express";
+import { fetchUserFromGithub } from "../Services/githubAuthService.js";
 
 export const sendOtp = async(req, res) => {
     const { email } = req.body;
@@ -32,7 +34,7 @@ export const googleLogin = async(req, res) => {
     }
     const user = await User.findOne({ email });
     if(user){
-        if(!picture){
+        if(!user.picture){
             user.picture = picture;
             await user.save();
         }
@@ -77,8 +79,82 @@ export const googleLogin = async(req, res) => {
         return res.status(201).json({success: true, message: "User LoggedIn Successfully"});
     } catch (err) {
         await mongooseSession.abortTransaction();
-        console.log(err.errorResponse.errInfo.details.schemaRulesNotSatisfied[0].additionalProperties);
-        console.log(err.errorResponse.errInfo.details.schemaRulesNotSatisfied[1].missingProperties);
+        if (err.code === 121) {
+            return res.status(400).json({ success: false, message: "Invalid Inputs" });
+        } else if (err.code === 11000) { //Unique Indexing error
+            if (err.keyPattern && err.keyPattern.email) {
+                return res.status(409).json({ success: false, message: "User already exists" });
+            }
+        }
+        next(err);
+    }
+}
+
+export const githubRedirectURI = async(req, res) => {
+    const client_id = process.env.GITHUB_CLIENT_ID;
+    const redirect_uri = process.env.GITHUB_REDIRECT_URI;
+    const params = new URLSearchParams({
+        client_id,
+        redirect_uri,
+        scope: "user:email"
+    })
+    res.redirect(`https://github.com/login/oauth/authorize?${params}`);
+}
+
+export const githubLogin = async(req, res) => {
+    const sessionId = req.signedCookies.sid;
+    const { code } = req.query;
+    const { name, email, picture } = await fetchUserFromGithub(code);
+    if(sessionId){
+        await Session.findByIdAndDelete(sessionId);
+    }
+    const user = await User.findOne({ email });
+    if(user){
+        if(!user.picture){
+            user.picture = picture;
+            await user.save();
+        }
+        const existingSessions = await Session.find({userId: user._id});
+        if(existingSessions.length >= 2){
+            await existingSessions[0].deleteOne();
+        }
+        const newSession = await Session.create({ userId: user._id });
+        res.cookie("sid", newSession.id, {
+            httpOnly: true,
+            signed: true,
+            maxAge: 24 * 60 * 60 * 1000 * 7
+        })
+        return res.redirect("http://localhost:5173/");
+    }
+    const mongooseSession = await mongoose.startSession();
+    try {
+        mongooseSession.startTransaction();
+        const userId = new Types.ObjectId();
+        const directoryId = new Types.ObjectId();
+        await User.insertOne({
+            _id: userId,
+            name,
+            email,
+            picture,
+            hasPassword: false,
+            rootDirectory: directoryId
+        }, {mongooseSession})
+        await Directory.insertOne({
+            _id: directoryId,
+            name: `root-${email}`,
+            parentDirectoryId: null,
+            userId,
+        }, {mongooseSession})
+        await mongooseSession.commitTransaction();
+        const newSession = await Session.create({ userId });
+        res.cookie("sid", newSession.id, {
+            httpOnly: true,
+            signed: true,
+            maxAge: 24 * 60 * 60 * 1000 * 7
+        })
+        return res.redirect("http://localhost:5173/");
+    } catch (err) {
+        await mongooseSession.abortTransaction();
         if (err.code === 121) {
             return res.status(400).json({ success: false, message: "Invalid Inputs" });
         } else if (err.code === 11000) { //Unique Indexing error

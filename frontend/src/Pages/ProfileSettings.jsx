@@ -87,22 +87,22 @@ const ProfileSettingsPage = () => {
     //       setLoadingUser(false);
     //     }
     //   }
-    
-      const updateProfile = async() => {
-        if(name === user?.name) {
+
+    const updateProfile = async () => {
+        if (name === user?.name) {
             toast.error("No changes made to update profile");
             return;
         }
         try {
             const response = await fetch(`${BASE_URL}/user/update-profile`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            credentials: 'include',
-            body: JSON.stringify({ newName: name })
-          });
-          const data = await response.json();
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: 'include',
+                body: JSON.stringify({ newName: name })
+            });
+            const data = await response.json();
             if (data.success) {
                 toast.success("Profile updated successfully");
                 setUser(data.user);
@@ -114,76 +114,76 @@ const ProfileSettingsPage = () => {
         } finally {
             setSaving(false);
         }
-      }
-      const updatePassword = async() => {
-        if(!hasPassword && newPassword.length === 0){
+    }
+    const updatePassword = async () => {
+        if (!hasPassword && newPassword.length === 0) {
             toast.error("Password cannot be empty");
             return;
         }
-        if(hasPassword && currentPassword.length === 0){
+        if (hasPassword && currentPassword.length === 0) {
             toast.error("Current Password is required");
             return;
         }
-        if(newPassword.length < 8){
+        if (newPassword.length < 8) {
             toast.error("Password must be at least 8 characters long");
             return;
         }
-        if(newPassword !== confirmPassword){
+        if (newPassword !== confirmPassword) {
             toast.error("New Password and Confirm Password do not match");
             return;
         }
         try {
             const response = await fetch(`${BASE_URL}/user/update-password`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            credentials: 'include',
-            body: JSON.stringify({ newPassword, currentPassword })
-          });
-          const data = await response.json();
-          if(data.success) {
-            toast.success(data.message);
-            setCurrentPassword("");
-            setNewPassword("");
-            setConfirmPassword("");
-            fetchUserData();
-          } else {
-            toast.error(data.message);
-          }
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: 'include',
+                body: JSON.stringify({ newPassword, currentPassword })
+            });
+            const data = await response.json();
+            if (data.success) {
+                toast.success(data.message);
+                setCurrentPassword("");
+                setNewPassword("");
+                setConfirmPassword("");
+                fetchUserData();
+            } else {
+                toast.error(data.message);
+            }
         } catch (err) {
             console.error("Error updating password:", err);
         } finally {
             setUpdatingPassword(false);
         }
-      }
-      const deleteAccount = async() => {
+    }
+    const deleteAccount = async () => {
         try {
             const response = await fetch(`${BASE_URL}/user/delete-account`, {
-            method: "DELETE",
-            credentials: 'include',
-          });
-          const data = await response.json();
-          if(data.success) {
-            toast.success("Account deleted successfully");
-            navigate("/");
-            setUser(null);
-          } else {
-            toast.error(data.message);
-          }
+                method: "DELETE",
+                credentials: 'include',
+            });
+            const data = await response.json();
+            if (data.success) {
+                toast.success("Account deleted successfully");
+                navigate("/");
+                setUser(null);
+            } else {
+                toast.error(data.message);
+            }
         } catch (err) {
             console.error("Error deleting account:", err);
         } finally {
             setDeletingAccount(false);
         }
-      }
-      useEffect(() => {
-        if(user){
+    }
+    useEffect(() => {
+        if (user) {
             setName(user.name);
             setHasPassword(user.hasPassword);
         }
-      }, [user]);
-    
+    }, [user]);
+
     if (loadingUser) return <Loader text="Loading profile..." />;
     return (
         <div className="relative min-h-screen bg-[var(--color-background)] px-6 py-14 text-white overflow-hidden">
@@ -192,13 +192,13 @@ const ProfileSettingsPage = () => {
             <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-[var(--color-secondary)] opacity-20 blur-3xl" />
 
             <div className="relative mx-auto max-w-5xl flex flex-col gap-8">
-                <Link to="/" className="flex items-center">
-                    <Cloud className="text-primary-accent fill-current" size={40} />
-                    <span className="text-2xl text-primary font-bold ml-2">
-                        <i>Web</i>
-                        <span className="text-secondary-accent">
-                            <i>Drive</i>
-                        </span>
+                <Link to="/" className="flex items-center gap-4 flex-1/4">
+                    <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-gradient-to-br from-primary-accent to-secondary-accent shadow-lg shadow-primary-accent/30">
+                        <Cloud size={26} className="text-white" />
+                    </div>
+
+                    <span className="text-2xl font-semibold text-white tracking-tight">
+                        Web<span className="text-secondary-accent">Drive</span>
                     </span>
                 </Link>
                 <div>

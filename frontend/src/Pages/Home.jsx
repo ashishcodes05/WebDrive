@@ -76,16 +76,15 @@ const Home = () => {
         </defs>
       </svg>
       <nav className="z-50 flex items-center justify-between h-24 w-full py-6 px-6 md:px-16 lg:px-24 xl:px-32 backdrop-blur">
-        <div className="flex items-center flex-1/4">
-          <Cloud className="text-primary-accent fill-current" size={40} />
-          <span className="text-2xl text-primary font-bold ml-2">
-            <i>Web</i>
-            <span className="text-secondary-accent">
-              <i>Drive</i>
-            </span>
+        <div className="flex items-center gap-4 flex-1/4">
+          <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-gradient-to-br from-primary-accent to-secondary-accent shadow-lg shadow-primary-accent/30">
+            <Cloud size={26} className="text-white" />
+          </div>
+
+          <span className="text-2xl font-semibold text-white tracking-tight">
+            Web<span className="text-secondary-accent">Drive</span>
           </span>
         </div>
-
         <div className="hidden md:flex items-center gap-8 transition duration-500 text-lg text-white flex-2/4 justify-center">
           <NavLink to="/" end className={({ isActive }) => `hover:text-slate-300 transition ${isActive ? 'text-secondary-accent font-semibold border-b-2 border-primary-accent' : ''}`}>
             Home
