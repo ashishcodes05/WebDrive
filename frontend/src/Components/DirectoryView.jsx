@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { History, Star, Trash2, Search, X } from "lucide-react";
+import { History, Star, Trash2, Search, X, UploadCloud } from "lucide-react";
+import { useGoogleLogin } from "@react-oauth/google";
 import FileRow from "./FileRow";
 import DetailCard from "./DetailCard";
 import DirectoryRow from "./DirectoryRow";
@@ -88,6 +89,68 @@ const DirectoryView = () => {
       console.error(err);
     }
   };
+  const loadPicker = () => {
+    return new Promise((resolve) => {
+      if (window.google?.picker) return resolve();
+
+      const script = document.createElement("script");
+      script.src = "https://apis.google.com/js/api.js";
+      script.onload = () => window.gapi.load("picker", resolve);
+      document.body.appendChild(script);
+    });
+  };
+
+  const openDrivePicker = async (accessToken) => {
+    await loadPicker();
+
+    const picker = new window.google.picker.PickerBuilder()
+      .addView(window.google.picker.ViewId.DOCS)
+      .enableFeature(window.google.picker.Feature.MULTISELECT_ENABLED)
+      .setOAuthToken(accessToken)
+      .setCallback(async (data) => {
+        if (data.action === "picked") {
+          try {
+            const res = await fetch(
+              `${BASE_URL}/auth/import/google-drive/${dirId || ""}`, 
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                  files: data.docs.map((d) => ({
+                    id: d.id,
+                    name: d.name,
+                  })),
+                  accessToken,
+                }),
+              }
+            );
+
+            const result = await res.json();
+            if (result.success) {
+              fetchDirectoryContents(dirId);
+              toast.success("Files imported from Google Drive");
+            } else {
+              toast.error(result.message);
+            }
+          } catch (err) {
+            console.error(err);
+            toast.error("Google Drive import failed");
+          }
+        }
+      })
+      .build();
+
+    picker.setVisible(true);
+  };
+
+  const googleLogin = useGoogleLogin({
+    scope: "https://www.googleapis.com/auth/drive.readonly",
+    onSuccess: (tokenResponse) => {
+      openDrivePicker(tokenResponse.access_token);
+    },
+    onError: () => toast.error("Google authentication failed"),
+  });
 
   const filteredFiles = files.filter((file) =>
     file.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -196,29 +259,51 @@ const DirectoryView = () => {
               )}
             </div>
 
-            <button
-              onClick={() => navigate("/recent")}
-              className="group flex items-center gap-2 rounded-xl px-4 py-2.5 bg-card-bg/70 backdrop-blur-xl border border-white/10 text-sm text-text-main shadow-lg shadow-black/30 transition hover:bg-white/10"
-            >
-              <History size={18} className="text-primary-accent" />
-              Recent
-            </button>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => navigate("/recent")}
+                  className="group flex items-center gap-2 rounded-xl px-4 py-2.5 bg-card-bg/70 backdrop-blur-xl border border-white/10 text-sm text-text-main shadow-lg shadow-black/30 transition hover:bg-white/10"
+                >
+                  <History size={18} className="text-primary-accent" />
+                  Recent
+                </button>
 
-            <button
-              onClick={() => navigate("/starred")}
-              className="group flex items-center gap-2 rounded-xl px-4 py-2.5 bg-card-bg/70 backdrop-blur-xl border border-white/10 text-sm text-text-main shadow-lg shadow-black/30 transition hover:bg-white/10"
-            >
-              <Star size={18} className="text-primary-accent" />
-              Starred
-            </button>
+                <button
+                  onClick={() => navigate("/starred")}
+                  className="group flex items-center gap-2 rounded-xl px-4 py-2.5 bg-card-bg/70 backdrop-blur-xl border border-white/10 text-sm text-text-main shadow-lg shadow-black/30 transition hover:bg-white/10"
+                >
+                  <Star size={18} className="text-primary-accent" />
+                  Starred
+                </button>
 
-            <button
-              onClick={() => navigate("/bin")}
-              className="group flex items-center gap-2 rounded-xl px-4 py-2.5 bg-card-bg/70 backdrop-blur-xl border border-white/10 text-sm text-text-main shadow-lg shadow-black/30 transition hover:bg-red-500/10 hover:border-red-500/30"
-            >
-              <Trash2 size={18} className="text-red-400" />
-              Bin
-            </button>
+                <button
+                  onClick={() => navigate("/bin")}
+                  className="group flex items-center gap-2 rounded-xl px-4 py-2.5 bg-card-bg/70 backdrop-blur-xl border border-white/10 text-sm text-text-main shadow-lg shadow-black/30 transition hover:bg-red-500/10 hover:border-red-500/30"
+                >
+                  <Trash2 size={18} className="text-red-400" />
+                  Bin
+                </button>
+              </div>
+              <div className="flex items-center justify-center">
+                <button
+                  onClick={() => googleLogin()}
+                  className="
+                  group flex items-center gap-2
+                  
+                  rounded-xl px-4 py-2.5
+                  bg-card-bg/70 backdrop-blur-xl
+                  border border-white/10
+                  text-sm text-text-main
+                  shadow-lg shadow-black/30
+                  transition hover:bg-white/10
+                  "
+                >
+                  <UploadCloud size={18} className="text-primary-accent" />
+                  Import from Google
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

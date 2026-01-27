@@ -80,7 +80,7 @@ export default function FileRow({ file, renameFileHandler, deleteFileHandler, se
                 </td>
 
             </tr>
-            {RenameModalOpen && <RenameFileModal fileId={id} filename={filename} renameFileHandler={renameFileHandler} onClose={() => setRenameModalOpen(false)} />}
+            {RenameModalOpen && <RenameFileModal fileId={id} filename={name} renameFileHandler={renameFileHandler} onClose={() => setRenameModalOpen(false)} />}
         </>
     );
 }
