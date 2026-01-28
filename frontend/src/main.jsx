@@ -10,6 +10,7 @@ import MyFiles from './Pages/MyFiles.jsx'
 import Home from './Pages/Home.jsx'
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import ProfileSettings from './Pages/ProfileSettings.jsx'
+import Users from './Pages/Users.jsx';
 
 const router = createBrowserRouter([
   {
@@ -49,15 +50,16 @@ const router = createBrowserRouter([
     element: (
       <ProfileSettings />
     )
+  },
+  {
+    path: "/users",
+    element: (
+      <Users />
+    )
   }
 ]);
 
-createRoot(document.getElementById('root')).render(
-  <AppProvider>
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-      <Toaster
-        position="bottom-right"
-        toastOptions={{
+const toastOptions = {
           duration: 4200,
           style: {
             background: "rgba(30, 41, 59, 0.85)",
@@ -88,7 +90,14 @@ createRoot(document.getElementById('root')).render(
               secondary: "#0f0f1a",
             },
           },
-        }}
+        };
+
+createRoot(document.getElementById('root')).render(
+  <AppProvider>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <Toaster
+        position="bottom-right"
+        toastOptions={toastOptions}
       />
       <RouterProvider router={router} />
     </GoogleOAuthProvider>

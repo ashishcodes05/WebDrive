@@ -162,3 +162,18 @@ export const deleteUser = async(req, res, next) => {
         next(err);
     }
 }
+
+export const getAllUsers = async(req, res, next) => {
+    try {
+        const existingSessions = await Session.find().lean()
+        const activeUsers = new Set(existingSessions.map(({userId}) => userId.toString()));
+        const users = await User.find().select("_id name email picture role").lean();
+        const allUsers = users.map((user) => {
+            user.isLoggedIn = activeUsers.has(user._id.toString())
+            return user;
+        })
+        return res.status(200).json({success: true, users: allUsers});
+    } catch(err){
+        next(err);
+    }
+}

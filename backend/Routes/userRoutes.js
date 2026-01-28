@@ -1,9 +1,10 @@
 import express from "express";
 import checkAuth from "../Middlewares/auth.js";
-import { createUser, getUser, loginUser, logoutUser, logoutAllDevices, updateUserProfile, updatePassword, deleteUser } from "../Controllers/userController.js";
+import { createUser, getUser, loginUser, logoutUser, logoutAllDevices, updateUserProfile, updatePassword, deleteUser, getAllUsers } from "../Controllers/userController.js";
 const router = express.Router();
 
 router.get("/", checkAuth, getUser);
+router.get("/getAllUsers", getAllUsers);
 router.post("/register", createUser);
 router.post("/login", loginUser);
 router.post("/logout", checkAuth, logoutUser);
