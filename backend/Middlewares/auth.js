@@ -15,7 +15,7 @@ export default async function checkAuth(req, res, next) {
   if(!session){
     return res.status(401).json({success: false, message: "Not Authorised"});
   }
-  const user = await User.findOne({_id: session.userId});
+  const user = await User.findOne({_id: session.userId, isDisabled: false});
   if (!user) {
     return res.status(401).json({
       success: false,

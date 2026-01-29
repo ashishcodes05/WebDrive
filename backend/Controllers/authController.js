@@ -34,6 +34,9 @@ export const googleLogin = async (req, res, next) => {
         await Session.findByIdAndDelete(sessionId);
     }
     const user = await User.findOne({ email });
+    if(user && user.isDisabled){
+        return res.status(401).json({ success: false, message: "Your Account is disabled. Please contact the administrator." });
+    }
     if (user) {
         if (!user.picture) {
             user.picture = picture;
@@ -110,6 +113,9 @@ export const githubLogin = async (req, res, next) => {
         await Session.findByIdAndDelete(sessionId);
     }
     const user = await User.findOne({ email });
+    if(user && user.isDisabled){
+        return res.status(401).json({ success: false, message: "Your Account is disabled. Please contact the administrator." });
+    }
     if (user) {
         if (!user.picture) {
             user.picture = picture;

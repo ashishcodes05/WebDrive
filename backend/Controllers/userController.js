@@ -12,7 +12,7 @@ export const getUser = (req, res) => {
         .json({
             success: true,
             message: "User Data Fetched Successfully",
-            user: { name: user.name, email: user.email, picture: user.picture, hasPassword: user.hasPassword },
+            user: { name: user.name, email: user.email, picture: user.picture, hasPassword: user.hasPassword, isDisabled: user.isDisabled, role: user.role },
         });
 };
 
@@ -65,9 +65,12 @@ export const loginUser = async (req, res, next) => {
         if (!email || !password) {
             return res.status(400).json({ success: false, message: "All fields are required" });
         }
-        const user = await User.findOne({ email }).select("_id password");
+        const user = await User.findOne({ email }).select("_id password isDisabled");
         if (!user) {
             return res.status(401).json({ success: false, message: "Invalid credentials" });
+        }
+        if(user.isDisabled){
+            return res.status(401).json({ success: false, message: "Your Account is disabled. Please contact the administrator." });
         }
         const isValidPassword = await user.comparePassword(password);
         if (!isValidPassword) {
@@ -159,21 +162,6 @@ export const deleteUser = async(req, res, next) => {
         await user.deleteOne();
         return res.status(200).json({success: true, message: "User Deleted Successfully"});
     } catch (err){
-        next(err);
-    }
-}
-
-export const getAllUsers = async(req, res, next) => {
-    try {
-        const existingSessions = await Session.find().lean()
-        const activeUsers = new Set(existingSessions.map(({userId}) => userId.toString()));
-        const users = await User.find().select("_id name email picture role").lean();
-        const allUsers = users.map((user) => {
-            user.isLoggedIn = activeUsers.has(user._id.toString())
-            return user;
-        })
-        return res.status(200).json({success: true, users: allUsers});
-    } catch(err){
         next(err);
     }
 }

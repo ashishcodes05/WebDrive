@@ -35,6 +35,14 @@ const userSchema = new Schema({
     picture: {
         type: String,
         default: null
+    },
+    role: {
+        type: String,
+        default: "User"
+    },
+    isDisabled: {
+        type: Boolean,
+        default: false
     }
 },
     {

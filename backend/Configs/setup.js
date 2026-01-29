@@ -146,6 +146,12 @@ await db.command({
                 picture: {
                     bsonType: ['string', 'null']
                 },
+                role: {
+                    bsonType: 'string'
+                },
+                isDisabled: {
+                    bsonType: 'bool'
+                },
                 __v: {
                     bsonType: 'int'
                 }
