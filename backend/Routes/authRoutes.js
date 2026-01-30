@@ -1,6 +1,6 @@
 import express from "express";
 import { githubLogin, githubRedirectURI, googleLogin, importFromGoogleDrive, sendOtp, verifyOtp } from "../Controllers/authController.js";
-import checkAuth from "../Middlewares/auth.js";
+import checkAuth from "../Middlewares/authMiddleware.js";
 const router = express.Router();
 
 router.post("/send-otp", sendOtp);

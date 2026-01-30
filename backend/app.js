@@ -7,7 +7,7 @@ import fileRoutes from './Routes/fileRoutes.js'
 import userRoutes from './Routes/userRoutes.js'
 import authRoutes from './Routes/authRoutes.js'
 import adminRoutes from './Routes/adminRoutes.js'
-import checkAuth from "./Middlewares/auth.js";
+import checkAuth from "./Middlewares/authMiddleware.js";
 import { connectDB } from "./Configs/db.js";
 
 const app = express();

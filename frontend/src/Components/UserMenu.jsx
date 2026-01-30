@@ -41,7 +41,7 @@ const UserMenu = ({ user, onLogout, onLogoutAll, onUpgrade, onClose }) => {
       <div className="px-5 py-4 border-b border-white/10">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary-accent to-secondary-accent flex items-center justify-center text-white font-semibold">
-            {picture ? <img src={`${picture}`} alt={user?.name || "User"} className="w-10 h-10 rounded-full object-cover" /> : user?.name?.[0]?.toUpperCase() || "U"}
+            {picture ? <img referrerPolicy="no-referrer" src={`${picture}`} alt={user?.name || "User"} className="w-10 h-10 rounded-full object-cover" /> : user?.name?.[0]?.toUpperCase() || "U"}
           </div>
           <div className="min-w-0">
             <p className="text-white font-medium truncate">

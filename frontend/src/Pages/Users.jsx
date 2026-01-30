@@ -1,33 +1,32 @@
 import { useEffect, useState } from "react";
 import { Users, CircleDot, Trash2, LogOut, Shield } from "lucide-react";
 import { useAppContext } from "../Context/AppContext";
+import ForceDeleteModal from "../Components/ForceDeleteModal";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router";
 
 const UsersPage = () => {
   const BASE_URL = "http://localhost:4000";
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
+  const [forceDeleteModalOpen, setForceDeleteModalOpen] = useState(false);
+
   const { user } = useAppContext();
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch(`${BASE_URL}/admin/getAllUsers`, {
-          credentials: "include",
-        });
-        const data = await res.json();
-        if (data.success) setUsers(data.users);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
+  const navigate = useNavigate();
+  const fetchUsers = async () => {
+    console.log(user?.role)
+    try {
+      const res = await fetch(`${BASE_URL}/admin/getAllUsers`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.success) setUsers(data.users);
+    } finally {
+      setLoading(false);
+    }
+  }
   const deleteUser = async (id) => {
-    const ok = window.confirm(
-      "Delete this user permanently? All files will be removed."
-    );
-    if (!ok) return;
-
     try {
       setDeletingId(id);
       const res = await fetch(`${BASE_URL}/admin/force-delete/${id}`, {
@@ -37,6 +36,8 @@ const UsersPage = () => {
       const data = await res.json();
       if (data.success) {
         setUsers((prev) => prev.filter((u) => u._id !== id));
+      } else {
+        toast.error(data.message || "Error deleting user");
       }
     } finally {
       setDeletingId(null);
@@ -50,17 +51,40 @@ const UsersPage = () => {
     });
     const data = await res.json();
     if (data.success) {
-      setUsers((prev) =>
-        prev.map((u) =>
-          u._id === id ? { ...u, isDisabled: !u.isDisabled } : u
-        )
-      );
+      setLoading(true);
+      fetchUsers();
+    } else {
+      toast.error(data.message || "Error toggling user status");
     }
   };
 
+  const forceLogoutUser = async (id) => {
+    const res = await fetch(`${BASE_URL}/admin/force-logout/${id}`, {
+      method: "POST",
+      credentials: "include",
+    });
+    const data = await res.json();
+    if (data.success) {
+      setUsers((prev) =>
+        prev.map((u) => (u._id === id ? { ...u, isLoggedIn: false } : u))
+      );
+    } else {
+      toast.error(data.message || "Error logging out user");
+    }
+  };
+  useEffect(() => {
+    if(user && user?.role != "owner" && user?.role !== "admin" && user?.role !== "manager"){
+      navigate('/');
+      return;
+    };
+    setLoading(true);
+    fetchUsers();
+  }, [user]);
+
+
   const online = users.filter((u) => u.isLoggedIn && !u.isDisabled).length;
   const offline = users.length - online;
-  const isManager = user?.role === "Manager";
+  const isManager = user?.role === "manager";
   return (
     <div className="min-h-screen bg-[var(--color-background)] px-10 py-8">
       <div className="max-w-7xl mx-auto">
@@ -179,8 +203,11 @@ const UsersPage = () => {
                         {u.isDisabled ? "Enable" : "Disable"}
                       </button>
 
-                      {u.isLoggedIn && !u.isDisabled && (
+                      {u.isLoggedIn && (
                         <button
+                        onClick={() => {
+                          forceLogoutUser(u._id)
+                        }}
                           disabled={isManager}
                           className={`inline-flex items-center gap-2 px-4 py-2 text-sm rounded-lg border transition ${
                             isManager
@@ -194,10 +221,13 @@ const UsersPage = () => {
                       )}
 
                       <button
-                        onClick={() => deleteUser(u._id)}
-                        disabled={deletingId === u._id || isManager}
+                        onClick={() => {
+                          setForceDeleteModalOpen(true)
+                          setDeletingId(u._id)
+                        }}
+                        disabled={isManager}
                         className={`h-9 w-9 flex items-center justify-center rounded-lg border transition ${
-                          isManager || deletingId === u._id
+                          isManager
                             ? "border-zinc-600 text-zinc-600 cursor-not-allowed"
                             : "border-red-500/30 text-red-400 hover:bg-red-500/10"
                         }`}
@@ -212,6 +242,10 @@ const UsersPage = () => {
           )}
         </div>
       </div>
+      <ForceDeleteModal open={forceDeleteModalOpen} onClose={() => setForceDeleteModalOpen(false)} onConfirm={() => {
+        deleteUser(deletingId)
+        setForceDeleteModalOpen(false);
+      }} />
     </div>
   );
 };

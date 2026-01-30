@@ -4,6 +4,8 @@ import validateIdMiddleware from "../Middlewares/validateIdMiddleware.js";
 import { deleteFileById, getFileById, renameFileById, uploadFiles } from "../Controllers/fileController.js";
 import path from "node:path"
 import { Types } from "mongoose";
+import { requirePermission } from "../Middlewares/permissionMiddleware.js";
+import { PERMISSIONS } from "../Auth/permissions.js";
 
 const router = express.Router();
 
@@ -24,9 +26,9 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage })
 
-router.get("/:id", getFileById);
-router.post("/{:parDirId}", upload.fields([{ name: "uploadedFiles", maxCount: 10 }]), uploadFiles);
-router.patch("/:id", renameFileById);
-router.delete("/:id", deleteFileById);
+router.get("/:id", requirePermission(PERMISSIONS.FILE_READ_SELF), getFileById);
+router.post("/{:parDirId}", requirePermission(PERMISSIONS.FILE_CREATE_SELF), upload.fields([{ name: "uploadedFiles", maxCount: 10 }]), uploadFiles);
+router.patch("/:id", requirePermission(PERMISSIONS.FILE_UPDATE_SELF), renameFileById);
+router.delete("/:id", requirePermission(PERMISSIONS.FILE_DELETE_SELF), deleteFileById);
 
 export default router;

@@ -11,6 +11,7 @@ import Home from './Pages/Home.jsx'
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import ProfileSettings from './Pages/ProfileSettings.jsx'
 import Users from './Pages/Users.jsx';
+import ManageRoles from './Pages/ManageRoles.jsx'
 
 const router = createBrowserRouter([
   {
@@ -55,6 +56,12 @@ const router = createBrowserRouter([
     path: "/users",
     element: (
       <Users />
+    )
+  },
+  {
+    path: "/users/update-roles",
+    element: (
+      <ManageRoles />
     )
   }
 ]);
