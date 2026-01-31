@@ -4,6 +4,7 @@ import { formatFileSize } from "../Utilities/SizeConverter";
 import { useState } from "react";
 import ContextMenu from "./ContextMenu";
 import RenameFileModal from "./RenameFileModal";
+import ShareModal from "./ShareModal";
 
 export default function FileRow({ file, renameFileHandler, deleteFileHandler, selectedRow, setSelectedRow }) {
     const BASE_URL = "http://localhost:4000"
@@ -12,7 +13,7 @@ export default function FileRow({ file, renameFileHandler, deleteFileHandler, se
     const readableSize = formatFileSize(size);
     const { icon: Icon, color } = getFileIcon(extension);
     const [menuPos, setMenuPos] = useState(null);
-
+    const [shareModalOpen, setShareModalOpen] = useState(false);
     function openMenu(e) {
         const rect = e.currentTarget.getBoundingClientRect();
         const menuWidth = 160;
@@ -75,11 +76,20 @@ export default function FileRow({ file, renameFileHandler, deleteFileHandler, se
                             }}
                             onClose={closeMenu}
                             isDirectory={false}
+                            setShareModalOpen={setShareModalOpen}
+                            setMenuPos={setMenuPos}
                         />
                     )}
                 </td>
 
             </tr>
+            {shareModalOpen && (
+                <ShareModal
+                    open={shareModalOpen}
+                    fileId={id}
+                    onClose={() => setShareModalOpen(false)}
+                />
+            )}
             {RenameModalOpen && <RenameFileModal fileId={id} filename={name} renameFileHandler={renameFileHandler} onClose={() => setRenameModalOpen(false)} />}
         </>
     );

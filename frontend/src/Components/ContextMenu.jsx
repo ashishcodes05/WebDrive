@@ -7,6 +7,8 @@ import {
   Pencil,
   Download,
   Trash2,
+  Share,
+  Share2,
 } from "lucide-react";
 
 export default function ContextMenu({
@@ -18,6 +20,8 @@ export default function ContextMenu({
   directoryId,
   onClose,
   isDirectory,
+  setShareModalOpen,
+  setMenuPos,
 }) {
   const BASE_URL = "http://localhost:4000";
   const menuRef = useRef(null);
@@ -62,6 +66,14 @@ export default function ContextMenu({
           Open
         </Link>
       )}
+
+      <button onClick={() => {
+        setShareModalOpen(true);
+        setMenuPos(null);
+      }} className={itemClass}>
+        <Share2 className="w-4 h-4 text-text-secondary" />
+        Share
+      </button>
 
       {/* Rename */}
       <button onClick={onRename} className={itemClass}>

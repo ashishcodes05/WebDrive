@@ -7,6 +7,7 @@ import fileRoutes from './Routes/fileRoutes.js'
 import userRoutes from './Routes/userRoutes.js'
 import authRoutes from './Routes/authRoutes.js'
 import adminRoutes from './Routes/adminRoutes.js'
+import shareRoutes from './Routes/shareRoutes.js'
 import checkAuth from "./Middlewares/authMiddleware.js";
 import { connectDB } from "./Configs/db.js";
 
@@ -27,6 +28,7 @@ app.use('/file',checkAuth, fileRoutes);
 app.use('/user', userRoutes);
 app.use('/auth', authRoutes);
 app.use('/admin',checkAuth, adminRoutes);
+app.use('/share', shareRoutes);
 
 
 app.use((err, req, res, next) => {

@@ -73,7 +73,7 @@ const UsersPage = () => {
     }
   };
   useEffect(() => {
-    if(user && user?.role != "owner" && user?.role !== "admin" && user?.role !== "manager"){
+    if (user && user?.role != "owner" && user?.role !== "admin" && user?.role !== "manager") {
       navigate('/');
       return;
     };
@@ -154,11 +154,10 @@ const UsersPage = () => {
 
                     <div>
                       <span
-                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${
-                          u.role === "admin"
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${u.role === "admin"
                             ? "bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] border-[var(--color-secondary)]/30"
                             : "bg-[var(--color-primary)]/10 text-[var(--color-primary)] border-[var(--color-primary)]/30"
-                        }`}
+                          }`}
                       >
                         <Shield size={12} />
                         {u.role}
@@ -168,17 +167,17 @@ const UsersPage = () => {
                     <div>
                       {u.isDisabled ? (
                         <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-400/20">
-                          <span className="h-2 w-2 bg-yellow-400 rounded-full" />
+                          <span className="h-2.5 w-2.5 rounded-full bg-yellow-400 status-disabled" />
                           Disabled
                         </span>
                       ) : u.isLoggedIn ? (
                         <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-400/20">
-                          <span className="h-2 w-2 bg-green-400 rounded-full" />
+                          <span className="h-2.5 w-2.5 rounded-full bg-green-400 status-online" />
                           Online
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">
-                          <span className="h-2 w-2 bg-zinc-400 rounded-full" />
+                          <span className="h-2.5 w-2.5 rounded-full bg-zinc-400" />
                           Offline
                         </span>
                       )}
@@ -187,33 +186,30 @@ const UsersPage = () => {
                     <div className="flex justify-end gap-3">
                       <button
                         onClick={() => toggleUserStatus(u._id)}
-                        className={`inline-flex items-center gap-2 px-4 py-2 text-sm rounded-lg border transition ${
-                          u.isDisabled
+                        className={`inline-flex items-center gap-2 px-4 py-2 text-sm rounded-lg border transition ${u.isDisabled
                             ? "text-green-400 border-green-400/20 hover:bg-green-500/10"
                             : "text-yellow-400 border-yellow-400/20 hover:bg-yellow-500/10"
-                        }`}
+                          }`}
                       >
                         <span
-                          className={`h-2 w-2 rounded-full ${
-                            u.isDisabled
+                          className={`h-2 w-2 rounded-full ${u.isDisabled
                               ? "bg-green-400"
                               : "bg-yellow-400"
-                          }`}
+                            }`}
                         />
                         {u.isDisabled ? "Enable" : "Disable"}
                       </button>
 
                       {u.isLoggedIn && (
                         <button
-                        onClick={() => {
-                          forceLogoutUser(u._id)
-                        }}
+                          onClick={() => {
+                            forceLogoutUser(u._id)
+                          }}
                           disabled={isManager}
-                          className={`inline-flex items-center gap-2 px-4 py-2 text-sm rounded-lg border transition ${
-                            isManager
+                          className={`inline-flex items-center gap-2 px-4 py-2 text-sm rounded-lg border transition ${isManager
                               ? "text-zinc-500 border-zinc-600 cursor-not-allowed"
                               : "text-red-400 border-red-400/20 hover:bg-red-500/10"
-                          }`}
+                            }`}
                         >
                           <LogOut size={15} />
                           Logout
@@ -226,11 +222,10 @@ const UsersPage = () => {
                           setDeletingId(u._id)
                         }}
                         disabled={isManager}
-                        className={`h-9 w-9 flex items-center justify-center rounded-lg border transition ${
-                          isManager
+                        className={`h-9 w-9 flex items-center justify-center rounded-lg border transition ${isManager
                             ? "border-zinc-600 text-zinc-600 cursor-not-allowed"
                             : "border-red-500/30 text-red-400 hover:bg-red-500/10"
-                        }`}
+                          }`}
                       >
                         <Trash2 size={15} />
                       </button>
