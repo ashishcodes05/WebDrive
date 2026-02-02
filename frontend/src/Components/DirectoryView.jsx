@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { History, Star, Trash2, Search, X, UploadCloud } from "lucide-react";
+import { History, Star, Trash2, Search, X, UploadCloud, Share2 } from "lucide-react";
 import { useGoogleLogin } from "@react-oauth/google";
 import FileRow from "./FileRow";
 import DetailCard from "./DetailCard";
 import DirectoryRow from "./DirectoryRow";
 import { useAppContext } from "../Context/AppContext";
 import toast from "react-hot-toast";
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import Loader from "./Loader";
 import Footer from "./Footer";
 
@@ -285,7 +285,7 @@ const DirectoryView = () => {
                   Bin
                 </button>
               </div>
-              <div className="flex items-center justify-center">
+              <div className="flex items-center justify-center gap-2">
                 <button
                   onClick={() => googleLogin()}
                   className="
@@ -302,6 +302,10 @@ const DirectoryView = () => {
                   <UploadCloud size={18} className="text-primary-accent" />
                   Import from Google
                 </button>
+                <Link to="/share/files" className="group flex items-center gap-2 rounded-xl px-4 py-2.5 bg-card-bg/70 backdrop-blur-xl border border-white/10 text-sm text-text-main shadow-lg shadow-black/30 transition hover:bg-white/10">
+                  <Share2 size={18} className="text-primary-accent" />
+                  Shared Files
+                </Link>
               </div>
             </div>
           </div>

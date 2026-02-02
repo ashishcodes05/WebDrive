@@ -1,7 +1,7 @@
 import { Cloud, Mail, Lock } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { useAppContext } from "../Context/AppContext";
 import { useGoogleLogin } from "@react-oauth/google";
 
@@ -20,6 +20,9 @@ const Login = () => {
   const onChangeHandler = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
+
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get("redirect");
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -46,6 +49,10 @@ const Login = () => {
         toast.success(data.message);
         await fetchUserData();
         setLoadingUser(false);
+        if (redirect) {
+          window.location.href = `http://localhost:4000${redirect}`;
+          return;
+        }
         navigate("/");
       }
     } catch {
@@ -72,6 +79,10 @@ const Login = () => {
         toast.success("Logged in with Google successfully");
         await fetchUserData();
         setLoadingUser(false);
+        if (redirect) {
+          window.location.href = `http://localhost:4000${redirect}`;
+          return;
+        }
         navigate("/");
       }
     },
@@ -150,7 +161,7 @@ const Login = () => {
 
         <p className="text-zinc-400 text-sm mt-5 text-center">
           Don’t have an account?{" "}
-          <Link to="/register" className="text-indigo-400 hover:underline">
+          <Link to={`/register${redirect ? `?redirect=${redirect}` : ""}`} className="text-indigo-400 hover:underline">
             Register
           </Link>
         </p>

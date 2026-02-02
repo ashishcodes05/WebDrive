@@ -12,6 +12,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import ProfileSettings from './Pages/ProfileSettings.jsx'
 import Users from './Pages/Users.jsx';
 import ManageRoles from './Pages/ManageRoles.jsx'
+import SharedFilesPage from './Pages/SharedFilesPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -63,6 +64,9 @@ const router = createBrowserRouter([
     element: (
       <ManageRoles />
     )
+  }, {
+    path: "/share/files",
+    element: <SharedFilesPage />
   }
 ]);
 

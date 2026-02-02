@@ -2,12 +2,16 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { Cloud, CheckCircle, Mail, Lock, User } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { useAppContext } from "../Context/AppContext";
 
 const Register = () => {
   const BASE_URL = "http://localhost:4000";
   const navigate = useNavigate();
+
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get("redirect");
+
   const { fetchUserData, setLoadingUser } = useAppContext();
 
   const [formData, setFormData] = useState({
@@ -80,7 +84,7 @@ const Register = () => {
       const data = await res.json();
       if (data.success) {
         toast.success(data.message);
-        navigate("/login");
+        navigate(`/login${redirect ? `?redirect=${redirect}` : ""}`);
       } else toast.error(data.message);
     } catch {
       toast.error("Registration failed");
@@ -221,7 +225,7 @@ const Register = () => {
 
         <p className="text-zinc-400 text-sm mt-4 text-center">
           Already have an account?{" "}
-          <Link to="/login" className="text-indigo-400 hover:underline">
+          <Link to={`/login${redirect ? `?redirect=${redirect}` : ""}`} className="text-indigo-400 hover:underline">
             Login
           </Link>
         </p>

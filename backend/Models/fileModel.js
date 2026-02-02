@@ -32,7 +32,11 @@ const fileSchema = new Schema({
         type: Date,
         default: null,
         expires: 30 * 24 * 60 * 60
-    }
+    },
+    isShared: {
+        type: Boolean,
+        default: false
+    },
 }, 
 {
     strict: 'throw'

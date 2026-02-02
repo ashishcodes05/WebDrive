@@ -66,7 +66,8 @@ await db.command({
                 'size',
                 'userId',
                 'deletedAt',
-                'isStarred'
+                'isStarred',
+                'isShared'
             ],
             properties: {
                 _id: {
@@ -94,6 +95,9 @@ await db.command({
                 },
                 deletedAt: {
                     bsonType: ['date', 'null']
+                },
+                isShared: {
+                    bsonType: 'bool'
                 },
                 __v: {
                     bsonType: 'int'

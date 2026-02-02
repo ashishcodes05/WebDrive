@@ -1,5 +1,5 @@
 import express from "express";
-import checkAuth from "../Middlewares/authMiddleware.js";
+import {checkAuth} from "../Middlewares/authMiddleware.js";
 import { createUser, getUser, loginUser, logoutUser, logoutAllDevices, updateUserProfile, updatePassword, deleteUser } from "../Controllers/userController.js";
 import { requirePermission } from "../Middlewares/permissionMiddleware.js";
 import { PERMISSIONS } from "../Auth/permissions.js";

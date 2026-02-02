@@ -28,6 +28,7 @@ const ShareModal = ({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ fileId }),
+        credentials: "include",
       });
       const data = await response.json();
       setToken(data.token);

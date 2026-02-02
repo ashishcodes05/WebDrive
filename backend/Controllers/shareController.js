@@ -9,7 +9,7 @@ export const generateToken = async(req, res, next) => {
     }
     const token = crypto.randomBytes(16).toString("hex");
     await Share.deleteMany({ fileId });
-    await Share.create({ token, fileId });
+    await Share.create({ token, fileId , userId: req.user._id });
     return res.status(200).json({ success: true, token});
 }
 
@@ -21,10 +21,12 @@ export const validateTokenAndViewFile = async(req, res, next) => {
             return res.status(200).json({ success: false, message: "Invalid token" })
         }
         const fileId = share.fileId;
-        const fileData = await File.findById(fileId).select("extension").lean();
+        const fileData = await File.findById(fileId);
         if(!fileData){
             return res.status(404).json({success: false, message: "File Not Found"});
         }
+        fileData.isShared = true;
+        await fileData.save();
         res.sendFile(`${process.cwd()}/Storage/${fileId}${fileData.extension}`, (err) => {
             if (res.headersSent) return;
             if (err) {
@@ -38,6 +40,23 @@ export const validateTokenAndViewFile = async(req, res, next) => {
         })
         
     } catch (err){
+        console.log(err.errorResponse.errInfo.details.schemaRulesNotSatisfied)
+        console.log(err.errorResponse.errInfo.details.schemaRulesNotSatisfied)
+        next(err);
+    }
+}
+
+export const getSharedFiles = async(req, res, next) => {
+    try {
+        const user = req.user;
+        const sharedTokens = await Share.find({ userId: user.id }).select("fileId").lean();
+        const fileIds = [];
+        for(const { fileId } of sharedTokens){
+            fileIds.push(fileId);
+        }
+        const files = await File.find({_id: {$in : fileIds}, isShared: true}).lean();
+        return res.status(200).json({ success: true, files});
+    } catch(err){
         next(err);
     }
 }
