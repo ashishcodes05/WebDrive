@@ -5,7 +5,7 @@ import ContextMenu from "./ContextMenu";
 import RenameDirectoryModal from "./RenameDirectoryModal";
 import { Link } from "react-router";
 
-export default function DirectoryRow({directory, selectedRow, renameDirectoryHandler, deleteDirectoryHandler, setSelectedRow }) {
+export default function DirectoryRow({directory, selectedRow, renameDirectoryHandler, deleteDirectoryHandler, setSelectedRow, currentUser }) {
     const { _id, name } = directory;
     const id = _id.toString();
     const [RenameModalOpen, setRenameModalOpen] = useState(false);
@@ -53,8 +53,9 @@ export default function DirectoryRow({directory, selectedRow, renameDirectoryHan
                     --
                 </td>
 
-                <td className="px-4 py-3 text-gray-300 uppercase">
-                    FOLDER
+                <td className="px-4 py-3 text-gray-400 flex items-center gap-1">
+                    <img referrerPolicy="no-referrer" src={currentUser?.picture} alt={currentUser?.name || "User"} className="w-6 h-6 rounded-full" />
+                    Me
                 </td>
 
                 <td className="px-8 py-3 text-right relative">

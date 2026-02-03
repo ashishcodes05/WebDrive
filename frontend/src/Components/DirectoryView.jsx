@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { History, Star, Trash2, Search, X, UploadCloud, Share2 } from "lucide-react";
 import { useGoogleLogin } from "@react-oauth/google";
 import FileRow from "./FileRow";
@@ -15,7 +15,7 @@ const DirectoryView = () => {
   const { dirId } = useParams();
   const navigate = useNavigate();
 
-  const { files, directories, fetchDirectoryContents, loadingUser } =
+  const { files, directories, fetchDirectoryContents, loadingUser, user } =
     useAppContext();
 
   const [sortBy, setSortBy] = useState("name-asc");
@@ -111,7 +111,7 @@ const DirectoryView = () => {
         if (data.action === "picked") {
           try {
             const res = await fetch(
-              `${BASE_URL}/auth/import/google-drive/${dirId || ""}`, 
+              `${BASE_URL}/auth/import/google-drive/${dirId || ""}`,
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -175,8 +175,10 @@ const DirectoryView = () => {
   });
 
   useEffect(() => {
-    fetchDirectoryContents(dirId);
-  }, [dirId]);
+    if (!loadingUser) {
+      fetchDirectoryContents(dirId);
+    }
+  }, [loadingUser, dirId]);
 
   if (loadingUser) return <Loader />;
 
@@ -318,7 +320,7 @@ const DirectoryView = () => {
                 <tr>
                   <th className="px-4 py-3 text-left w-[50%]">Name</th>
                   <th className="px-4 py-3 text-left w-[20%]">Size</th>
-                  <th className="px-4 py-3 text-left w-[15%]">Type</th>
+                  <th className="px-4 py-3 text-left w-[15%]">Owner</th>
                   <th className="px-6 py-3 text-right w-[10%]">Actions</th>
                 </tr>
               </thead>
@@ -332,19 +334,36 @@ const DirectoryView = () => {
                     setSelectedRow={setSelectedRow}
                     renameDirectoryHandler={renameDirectoryHandler}
                     deleteDirectoryHandler={deleteDirectoryHandler}
+                    currentUser={user}
                   />
                 ))}
 
-                {sortedFiles.map((file) => (
-                  <FileRow
-                    key={file._id}
-                    file={file}
-                    selectedRow={selectedRow}
-                    setSelectedRow={setSelectedRow}
-                    renameFileHandler={renameFileHandler}
-                    deleteFileHandler={deleteFileHandler}
-                  />
-                ))}
+                {sortedFiles.map((file) => {
+                  let role = "viewer";
+
+                  if (file.userId._id.toString() === user.id) {
+                    role = "owner";
+                  } else {
+                    const sharedEntry = file.sharedWith?.find(
+                      (u) => u.userId._id?.toString() === user.id
+                    );
+                    role = sharedEntry?.role ?? "viewer";
+                  }
+
+                  return (
+                    <FileRow
+                      key={file._id}
+                      toLink={`${BASE_URL}/file/${file._id}`}
+                      file={file}
+                      selectedRow={selectedRow}
+                      setSelectedRow={setSelectedRow}
+                      renameFileHandler={renameFileHandler}
+                      deleteFileHandler={deleteFileHandler}
+                      role={role}
+                      currentUser={file.userId._id}
+                    />
+                  );
+                })}
 
                 {sortedFiles.length === 0 &&
                   sortedDirectories.length === 0 && (

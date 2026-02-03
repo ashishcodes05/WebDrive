@@ -5,6 +5,10 @@ const shareSchema = new Schema({
         type: String,
         required: true
     },
+    role: {
+        type: String,
+        required: true
+    },
     fileId: {
         type: Schema.Types.ObjectId,
         required: true

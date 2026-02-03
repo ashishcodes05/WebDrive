@@ -49,5 +49,5 @@ export const ROLES = {
   ],
 
   admin: Object.values(PERMISSIONS),
-  owner: Object.values(PERMISSIONS)
+  owner: Object.values(PERMISSIONS),
 };

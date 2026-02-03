@@ -57,58 +57,81 @@ await db.command({
     collMod: "files",
     validator: {
         $jsonSchema: {
-            bsonType: 'object',
+            bsonType: "object",
             required: [
-                '_id',
-                'extension',
-                'name',
-                'parentDirectoryId',
-                'size',
-                'userId',
-                'deletedAt',
-                'isStarred',
-                'isShared'
+                "_id",
+                "extension",
+                "name",
+                "parentDirectoryId",
+                "size",
+                "userId",
+                "deletedAt",
+                "isStarred",
+                "isShared",
+                "sharedWith"
             ],
             properties: {
                 _id: {
-                    bsonType: 'objectId'
+                    bsonType: "objectId"
                 },
                 extension: {
-                    bsonType: 'string'
+                    bsonType: "string"
                 },
                 name: {
-                    bsonType: 'string',
+                    bsonType: "string",
                     minLength: 1,
-                    description: "Filename should consist of atleast one character"
+                    description: "Filename should consist of at least one character"
                 },
                 parentDirectoryId: {
-                    bsonType: 'objectId'
+                    bsonType: "objectId"
                 },
                 size: {
-                    bsonType: 'int'
+                    bsonType: "int"
                 },
                 userId: {
-                    bsonType: 'objectId'
+                    bsonType: "objectId"
                 },
                 isStarred: {
-                    bsonType: 'bool'
+                    bsonType: "bool"
                 },
                 deletedAt: {
-                    bsonType: ['date', 'null']
+                    bsonType: ["date", "null"]
                 },
                 isShared: {
-                    bsonType: 'bool'
+                    bsonType: "bool"
+                },
+                sharedWith: {
+                    bsonType: "array",
+                    items: {
+                        bsonType: "object",
+                        required: ["userId", "role"],
+                        properties: {
+                            _id: {
+                                bsonType: "objectId"
+                            },
+                            userId: {
+                                bsonType: "objectId"
+                            },
+                            role: {
+                                bsonType: "string",
+                                enum: ["viewer", "editor", "owner"]
+                            }
+                        },
+                        additionalProperties: false
+                    }
                 },
                 __v: {
-                    bsonType: 'int'
+                    bsonType: "int"
                 }
             },
             additionalProperties: false
         }
     },
-    validationLevel: 'strict',
-    validationAction: 'error'
-})
+
+    validationLevel: "strict",
+    validationAction: "error"
+});
+
 
 await db.command({
     collMod: "users",

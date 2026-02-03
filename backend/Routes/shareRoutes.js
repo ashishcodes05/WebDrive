@@ -1,11 +1,15 @@
 import express from "express";
-import { generateToken, getSharedFiles, validateTokenAndViewFile } from "../Controllers/shareController.js";
+import { deleteSharedFile, generateToken, getSharedFiles, renameSharedFile, updateRole, validateTokenAndViewFile, viewFile } from "../Controllers/shareController.js";
 import { checkShareAuth, checkAuth } from "../Middlewares/authMiddleware.js";
 
 const router = express.Router();
 
 router.post("/generate-token", checkAuth, generateToken);
 router.get("/file/:token",checkShareAuth , validateTokenAndViewFile);
-router.get("/files", getSharedFiles);
+router.get("/files", checkAuth, getSharedFiles);
+router.get("/file/:fileId/view", checkAuth, viewFile);
+router.patch("/file/:fileId", checkAuth, renameSharedFile);
+router.patch("/update-role", checkAuth, updateRole);
+router.delete("/file/:fileId", checkAuth, deleteSharedFile);
 
 export default router;

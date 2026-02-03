@@ -7,7 +7,7 @@ const fileSchema = new Schema({
         required: true
     },
     extension: {
-        type: String, 
+        type: String,
         required: true
     },
     size: {
@@ -37,10 +37,28 @@ const fileSchema = new Schema({
         type: Boolean,
         default: false
     },
-}, 
-{
-    strict: 'throw'
-}
+    sharedWith: {
+        type: [
+            {
+                userId: {
+                    type: Schema.Types.ObjectId,
+                    ref: "User",
+                    required: true
+                },
+                role: {
+                    type: String,
+                    enum: ["viewer", "editor"],
+                    required: true
+                }
+            }
+        ],
+        default: []
+    }
+
+},
+    {
+        strict: 'throw'
+    }
 );
 
 const File = model("File", fileSchema);

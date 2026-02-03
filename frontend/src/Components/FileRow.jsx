@@ -5,43 +5,74 @@ import { useState } from "react";
 import ContextMenu from "./ContextMenu";
 import RenameFileModal from "./RenameFileModal";
 import ShareModal from "./ShareModal";
+import SharedUsersDropdown from "./SharedUsersDropdown";
+import { useAppContext } from "../Context/AppContext";
+import toast from "react-hot-toast";
 
-export default function FileRow({ file, renameFileHandler, deleteFileHandler, selectedRow, setSelectedRow }) {
-    const BASE_URL = "http://localhost:4000"
-    const { _id: id, name, extension, size } = file;
-    const [RenameModalOpen, setRenameModalOpen] = useState(false);
+export default function FileRow({
+    file,
+    renameFileHandler,
+    deleteFileHandler,
+    selectedRow,
+    setSelectedRow,
+    toLink,
+    role,
+    fetchSharedFiles
+}) {
+    const { _id: id, name, extension, size, sharedWith, userId } = file;
+    const dirId = file.parentDirectoryId;
+
     const readableSize = formatFileSize(size);
     const { icon: Icon, color } = getFileIcon(extension);
+
     const [menuPos, setMenuPos] = useState(null);
+    const [renameModalOpen, setRenameModalOpen] = useState(false);
     const [shareModalOpen, setShareModalOpen] = useState(false);
+
+    const { user, loadingUser, fetchDirectoryContents } = useAppContext();
+    if (loadingUser) return null;
+
     function openMenu(e) {
         const rect = e.currentTarget.getBoundingClientRect();
-        const menuWidth = 160;
-        const menuHeight = 200;
-        const padding = 8;
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-        let x = rect.left - menuWidth;
-        if (x < padding) {
-            x = Math.min(rect.right + padding, viewportWidth - menuWidth - padding);
-        }
-        let y = rect.bottom + padding;
-        if (y + menuHeight > viewportHeight) {
-            y = Math.max(rect.top - menuHeight - padding, padding);
-        }
-        setMenuPos({ x, y });
+        setMenuPos({ x: rect.left - 160, y: rect.bottom + 8 });
     }
 
     function closeMenu() {
         setMenuPos(null);
     }
 
+    const updateUserRole = async (targetUserId, newRole) => {
+        const response = await fetch("http://localhost:4000/share/update-role", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+                fileId: id,
+                userId: targetUserId,
+                role: newRole
+            })
+        });
+        const data = await response.json();
+        if (data.success) {
+            fetchDirectoryContents(dirId);
+            fetchSharedFiles?.();
+            toast.success("User role updated successfully");
+        }
+    };
+
     return (
         <>
-            <tr onClick={() => setSelectedRow(id)} className={`bg-black/20 border-b border-white/5 hover:bg-white/5 transition backdrop-blur-lg ${selectedRow === id ? "bg-white/10" : ""}`}>
-                <td className="px-4 py-3 cursor-pointer">
-                    <a href={`${BASE_URL}/file/${id}`} className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-white/5 icon-glow">
+            <tr
+                onClick={() => setSelectedRow(id)}
+                className={`
+                bg-black/20 border-b border-white/5
+                hover:bg-white/5 transition
+                ${selectedRow === id ? "bg-white/10" : ""}
+                `}
+            >
+                <td className="px-4 py-3">
+                    <a href={toLink} className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-white/5">
                             <Icon className={color} />
                         </div>
                         <p className="truncate max-w-[350px]">{name}</p>
@@ -52,12 +83,23 @@ export default function FileRow({ file, renameFileHandler, deleteFileHandler, se
                     {readableSize}
                 </td>
 
-                <td className="px-4 py-3 text-gray-300 uppercase">
-                    {extension.slice(1).toUpperCase()}
+                <td className="px-4 py-3">
+                    {file.sharedWith?.length > 0 ? (
+                        <SharedUsersDropdown
+                            file={file}
+                            currentUser={user}
+                            onRoleChange={updateUserRole}
+                        />
+                    ) : (
+                        <div className="flex items-center gap-1">
+                            <img referrerPolicy="no-referrer" src={user?.picture} alt={user?.name || "User"} className="w-6 h-6 rounded-full" />
+                            <span className="text-gray-400">Me</span>
+                        </div>
+                    )}
                 </td>
 
                 <td className="px-8 py-3 text-right relative">
-                    <button onClick={(e) => openMenu(e)}>
+                    <button onClick={openMenu}>
                         <MoreVertical className="w-5 h-5 text-gray-300 hover:text-white" />
                     </button>
 
@@ -66,10 +108,9 @@ export default function FileRow({ file, renameFileHandler, deleteFileHandler, se
                             x={menuPos.x}
                             y={menuPos.y}
                             onRename={() => {
-                                setRenameModalOpen(true)
+                                setRenameModalOpen(true);
                                 setMenuPos(null);
                             }}
-                            fileId={id}
                             onDelete={() => {
                                 deleteFileHandler(id);
                                 setMenuPos(null);
@@ -77,12 +118,13 @@ export default function FileRow({ file, renameFileHandler, deleteFileHandler, se
                             onClose={closeMenu}
                             isDirectory={false}
                             setShareModalOpen={setShareModalOpen}
-                            setMenuPos={setMenuPos}
+                            toLink={toLink}
+                            role={role}
                         />
                     )}
                 </td>
-
             </tr>
+
             {shareModalOpen && (
                 <ShareModal
                     open={shareModalOpen}
@@ -90,7 +132,15 @@ export default function FileRow({ file, renameFileHandler, deleteFileHandler, se
                     onClose={() => setShareModalOpen(false)}
                 />
             )}
-            {RenameModalOpen && <RenameFileModal fileId={id} filename={name} renameFileHandler={renameFileHandler} onClose={() => setRenameModalOpen(false)} />}
+
+            {renameModalOpen && (
+                <RenameFileModal
+                    fileId={id}
+                    filename={name}
+                    renameFileHandler={renameFileHandler}
+                    onClose={() => setRenameModalOpen(false)}
+                />
+            )}
         </>
     );
 }

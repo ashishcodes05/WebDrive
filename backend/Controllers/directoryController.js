@@ -13,7 +13,7 @@ export const getDirectoryById = async (req, res, next) => {
         message: "Directory Not Found!"
       })
     }
-    const files = await File.find({ parentDirectoryId: id }).lean();
+    const files = await File.find({ parentDirectoryId: id }).populate("sharedWith.userId").populate("userId").lean();
     const directories = await Directory.find({ parentDirectoryId: id }).lean();
     return res.status(200).json({
       success: true,

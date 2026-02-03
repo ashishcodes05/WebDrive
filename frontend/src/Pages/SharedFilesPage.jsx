@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import FileRow from "../Components/FileRow";
 import { Link } from "react-router";
+import { useAppContext } from "../Context/AppContext";
+import toast from "react-hot-toast";
 
 const getFileIcon = (ext) => {
   const e = ext.toLowerCase();
@@ -35,6 +37,7 @@ const SharedFilesPage = () => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRow, setSelectedRow] = useState(null);
+  const { user, loadingUser } = useAppContext();
 
   const fetchSharedFiles = async () => {
     try {
@@ -50,7 +53,7 @@ const SharedFilesPage = () => {
 
   const renameFileHandler = async (fileId, newFilename) => {
     try {
-      const res = await fetch(`${BASE_URL}/file/${fileId}`, {
+      const res = await fetch(`${BASE_URL}/share/file/${fileId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -68,7 +71,7 @@ const SharedFilesPage = () => {
 
   const deleteFileHandler = async (fileId) => {
     try {
-      const res = await fetch(`${BASE_URL}/file/${fileId}`, {
+      const res = await fetch(`${BASE_URL}/share/file/${fileId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -83,8 +86,10 @@ const SharedFilesPage = () => {
   };
 
   useEffect(() => {
-    fetchSharedFiles();
-  }, []);
+    if (!loadingUser) {
+      fetchSharedFiles();
+    }
+  }, [loadingUser]);
 
   return (
     <div className="min-h-screen bg-[var(--color-background)] px-10 py-8">
@@ -119,22 +124,26 @@ const SharedFilesPage = () => {
                 <tr>
                   <th className="px-4 py-3 text-left w-[50%]">Name</th>
                   <th className="px-4 py-3 text-left w-[20%]">Size</th>
-                  <th className="px-4 py-3 text-left w-[15%]">Type</th>
+                  <th className="px-4 py-3 text-left w-[15%]">Owner</th>
                   <th className="px-6 py-3 text-right w-[10%]">Actions</th>
                 </tr>
               </thead>
 
               <tbody className="divide-y divide-white/5 text-white">
-                {files.map((file) => (
-                  <FileRow
+                {files.map((file) => {
+                  const role = file.sharedWith.find((u) => u.userId._id.toString() === user.id)?.role;
+                  return <FileRow
+                    toLink={`${BASE_URL}/share/file/${file._id}/view`}
                     key={file._id}
                     file={file}
                     selectedRow={selectedRow}
                     setSelectedRow={setSelectedRow}
                     renameFileHandler={renameFileHandler}
                     deleteFileHandler={deleteFileHandler}
+                    role={role}
+                    fetchSharedFiles={fetchSharedFiles}
                   />
-                ))}
+                })}
 
                 {files.length === 0 && (
                   <tr>

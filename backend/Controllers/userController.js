@@ -12,7 +12,7 @@ export const getUser = (req, res) => {
         .json({
             success: true,
             message: "User Data Fetched Successfully",
-            user: { name: user.name, email: user.email, picture: user.picture, hasPassword: user.hasPassword, isDisabled: user.isDisabled, role: user.role },
+            user: { id: user._id, name: user.name, email: user.email, picture: user.picture, hasPassword: user.hasPassword, isDisabled: user.isDisabled, role: user.role },
         });
 };
 
