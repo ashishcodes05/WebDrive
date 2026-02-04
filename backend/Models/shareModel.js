@@ -9,9 +9,14 @@ const shareSchema = new Schema({
         type: String,
         required: true
     },
-    fileId: {
+    resourceId: {
         type: Schema.Types.ObjectId,
-        required: true
+        required: true,
+    },
+    resourceType: {
+        type: String,
+        required: true,
+        enum: ["file", "directory"]
     },
     userId: {
         type: Schema.Types.ObjectId,

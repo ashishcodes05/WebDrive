@@ -38,7 +38,7 @@ const userSchema = new Schema({
     },
     role: {
         type: String,
-        default: "User"
+        default: "user"
     },
     isDisabled: {
         type: Boolean,

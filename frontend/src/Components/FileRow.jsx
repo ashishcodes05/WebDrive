@@ -84,18 +84,10 @@ export default function FileRow({
                 </td>
 
                 <td className="px-4 py-3">
-                    {file.sharedWith?.length > 0 ? (
-                        <SharedUsersDropdown
-                            file={file}
-                            currentUser={user}
-                            onRoleChange={updateUserRole}
-                        />
-                    ) : (
-                        <div className="flex items-center gap-1">
-                            <img referrerPolicy="no-referrer" src={user?.picture} alt={user?.name || "User"} className="w-6 h-6 rounded-full" />
-                            <span className="text-gray-400">Me</span>
-                        </div>
-                    )}
+                    <div className="flex items-end gap-1">
+                        <img referrerPolicy="no-referrer" src={user?.picture} alt={user?.name || "User"} className="w-6 h-6 rounded-full" />
+                        <span className="text-gray-400">Me</span>
+                    </div>
                 </td>
 
                 <td className="px-8 py-3 text-right relative">
@@ -128,8 +120,9 @@ export default function FileRow({
             {shareModalOpen && (
                 <ShareModal
                     open={shareModalOpen}
-                    fileId={id}
+                    resourceId={id}
                     onClose={() => setShareModalOpen(false)}
+                    isDirectory={false}
                 />
             )}
 

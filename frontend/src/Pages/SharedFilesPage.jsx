@@ -13,6 +13,8 @@ import FileRow from "../Components/FileRow";
 import { Link } from "react-router";
 import { useAppContext } from "../Context/AppContext";
 import toast from "react-hot-toast";
+import SharedFileRow from "../Components/SharedFileRow";
+import SharedDirectoryRow from "../Components/SharedDirectoryRow";
 
 const getFileIcon = (ext) => {
   const e = ext.toLowerCase();
@@ -35,17 +37,42 @@ const formatSize = (bytes) => {
 const SharedFilesPage = () => {
   const BASE_URL = "http://localhost:4000";
   const [files, setFiles] = useState([]);
+  const [directories, setDirectories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRow, setSelectedRow] = useState(null);
+  const [sharedUsers, setSharedUsers] = useState([]);
   const { user, loadingUser } = useAppContext();
 
-  const fetchSharedFiles = async () => {
+  const fetchSharedUsers = async () => {
+    const fileResources = files.map((file) => ({ resourceId: file._id, resourceType: "file" }));
+    const directoryResources = directories.map((dir) => ({ resourceId: dir._id, resourceType: "directory" }));
+    const resources = [...fileResources, ...directoryResources];
     try {
-      const res = await fetch(`${BASE_URL}/share/files`, {
+      const res = await fetch(`${BASE_URL}/share/shared-users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ resources })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSharedUsers(data.sharedUsers);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  const fetchSharedFiles = async (dirId) => {
+    try {
+      const res = await fetch(`${BASE_URL}/share/directory/${dirId || ""}`, {
         credentials: "include",
       });
       const data = await res.json();
-      if (data.success) setFiles(data.files || []);
+      if (data.success){
+        setFiles(data.files);
+        setDirectories(data.directories);
+      }
     } finally {
       setLoading(false);
     }
@@ -130,9 +157,25 @@ const SharedFilesPage = () => {
               </thead>
 
               <tbody className="divide-y divide-white/5 text-white">
+                {
+                  directories.map((directory) => {
+                    const currentSharedUsers = sharedUsers[directory._id.toString()] || [];
+                    return <SharedDirectoryRow
+                      key={directory._id}
+                      directory={directory}
+                      toLink={`${BASE_URL}/share/directory/${directory._id}`}
+                      selectedRow={selectedRow}
+                      setSelectedRow={setSelectedRow}
+                      renameDirectoryHandler={renameDirectoryHandler}
+                      deleteDirectoryHandler={deleteDirectoryHandler}
+                      currentUser={user}
+                      currentSharedUsers={currentSharedUsers}
+                    />
+                  })
+                }
                 {files.map((file) => {
-                  const role = file.sharedWith.find((u) => u.userId._id.toString() === user.id)?.role;
-                  return <FileRow
+                  const currentSharedUsers = sharedUsers[file._id.toString()] || [];
+                  return <SharedFileRow
                     toLink={`${BASE_URL}/share/file/${file._id}/view`}
                     key={file._id}
                     file={file}
@@ -142,9 +185,9 @@ const SharedFilesPage = () => {
                     deleteFileHandler={deleteFileHandler}
                     role={role}
                     fetchSharedFiles={fetchSharedFiles}
+                    currentSharedUsers={currentSharedUsers}
                   />
                 })}
-
                 {files.length === 0 && (
                   <tr>
                     <td colSpan={4} className="py-10 text-center text-gray-400">

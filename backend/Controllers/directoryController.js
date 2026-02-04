@@ -1,6 +1,7 @@
 import { rm } from "fs/promises";
 import Directory from "../Models/directoryModel.js";
 import File from "../Models/fileModel.js";
+import Permission from "../Models/permissionModel.js";
 
 export const getDirectoryById = async (req, res, next) => {
   try {
@@ -13,13 +14,12 @@ export const getDirectoryById = async (req, res, next) => {
         message: "Directory Not Found!"
       })
     }
-    const files = await File.find({ parentDirectoryId: id }).populate("sharedWith.userId").populate("userId").lean();
-    const directories = await Directory.find({ parentDirectoryId: id }).lean();
+    const files = await File.find({ parentDirectoryId: id }).populate("userId", "email picture").lean();
+    const directories = await Directory.find({ parentDirectoryId: id }).populate("userId", "email picture").lean();
     return res.status(200).json({
       success: true,
       message: "Directory Found!",
       directoryData: {
-        ...directoryData,
         files,
         directories
       }
@@ -41,11 +41,18 @@ export const createDirectory = async (req, res, next) => {
     });
   }
   try {
-    await Directory.insertOne({
+    const insertedDirectory = await Directory.create({
       name: foldername,
       parentDirectoryId: parDirId,
       userId: user._id,
     });
+    await Permission.create({
+      resourceId: insertedDirectory._id,
+      resourceType: "directory",
+      parentDirectoryId: parDirId,
+      userId: user._id,
+      role: "owner"
+    })
     return res.status(200).json({ success: true, message: "Folder Created Successfully" });
   } catch (err) {
     next(err);

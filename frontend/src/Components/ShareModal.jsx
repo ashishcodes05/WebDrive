@@ -11,7 +11,7 @@ import {
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
-const ShareModal = ({ fileId, open, onClose }) => {
+const ShareModal = ({ resourceId, open, onClose, isDirectory }) => {
   const [copied, setCopied] = useState(false);
   const [token, setToken] = useState(null);
   const [permission, setPermission] = useState("viewer");
@@ -20,7 +20,7 @@ const ShareModal = ({ fileId, open, onClose }) => {
   if (!open) return null;
 
   const shareLink = token
-    ? `http://localhost:4000/share/file/${token}`
+    ? `http://localhost:4000/share/${isDirectory ? "directory" : "file"}/${token}`
     : "Generating link...";
 
   const copyLink = async () => {
@@ -36,7 +36,7 @@ const ShareModal = ({ fileId, open, onClose }) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ fileId, permission })
+        body: JSON.stringify({ resourceId, permission, resourceType: isDirectory ? "directory" : "file" })
       });
       const data = await res.json();
       if (data?.token) setToken(data.token);

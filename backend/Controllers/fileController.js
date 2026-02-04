@@ -2,6 +2,7 @@ import { rm } from "fs/promises";
 import path from "path";
 import File from "../Models/fileModel.js";
 import Directory from "../Models/directoryModel.js";
+import Permission from "../Models/permissionModel.js";
 
 export const getFileById = async(req, res) => {
   const user = req.user;
@@ -50,6 +51,7 @@ export const uploadFiles = async (req, res, next) => {
       });
     }
     const filesData = [];
+    const permissionData = [];
     uploadedFiles.forEach((file) => {
       const { _id } = file;
       const { originalname: name } = file;
@@ -63,8 +65,16 @@ export const uploadFiles = async (req, res, next) => {
         extension,
         size,
       })
+      permissionData.push({
+        resourceId: _id,
+        resourceType: "file",
+        parentDirectoryId: parDirId,
+        userId: user._id,
+        role: "owner"
+      })
     })
     await File.insertMany(filesData);
+    await Permission.insertMany(permissionData);
     return res.status(201).json({ success: true, message: "Files Uploaded Successfully" });
   } catch (err) {
     next(err);

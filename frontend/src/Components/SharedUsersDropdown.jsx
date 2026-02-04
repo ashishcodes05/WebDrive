@@ -3,9 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 export default function SharedUsersDropdown({
-  file,
+  resource,
   currentUser,
-  onRoleChange
+  onRoleChange,
+  currentSharedUsers
 }) {
   const buttonRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -13,21 +14,9 @@ export default function SharedUsersDropdown({
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0 });
 
-  if (!file) return null;
+  if (!resource) return null;
 
-  const ownerId = file.userId._id.toString()
-  const currentId = currentUser?.id?.toString?.();
-  const isOwner = ownerId && currentId ? ownerId === currentId : false;
-
-  const ownerUser = file.userId;
-
-  const ownerEntry = {
-    userId: ownerUser,
-    role: "owner",
-    isOwner: true
-  }
-
-  const users = [ownerEntry, ...file.sharedWith];
+  const users = currentSharedUsers || [];
 
   if (users.length === 0) return null;
 
@@ -101,7 +90,7 @@ export default function SharedUsersDropdown({
             <div className="py-2 max-h-72 overflow-y-auto scrollbar-none">
               {users.map((entry) => (
                 <div
-                  key={entry.userId._id}
+                  key={entry.userId}
                   className="
                     flex items-center justify-between gap-3
                     px-3 py-2 hover:bg-white/5 transition
@@ -110,14 +99,14 @@ export default function SharedUsersDropdown({
                   <div className="flex items-center gap-3 min-w-0">
                     <img
                       referrerPolicy="no-referrer"
-                      src={entry.userId.picture || "/avatar.png"}
-                      alt={entry.userId.email}
+                      src={entry.picture || "/avatar.png"}
+                      alt={entry.email}
                       className="w-9 h-9 rounded-full object-cover"
                     />
 
                     <div className="min-w-0">
                       <p className="text-sm text-white truncate">
-                        {entry.userId.email}
+                        {entry.email}
                       </p>
                       <p className="text-xs text-text-secondary">
                         {entry.role === "owner" ? "Owner" : "Shared user"}
@@ -136,10 +125,10 @@ export default function SharedUsersDropdown({
                     </span>
                   ) : (
                     <select
-                      disabled={!isOwner}
+                      disabled={!currentUser || currentUser.id === entry.userId}
                       value={entry.role}
                       onChange={(e) =>
-                        onRoleChange(entry.userId._id, e.target.value)
+                        onRoleChange(entry.userId, e.target.value)
                       }
                       className="
                         bg-black/30 border border-white/10

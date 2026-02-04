@@ -16,7 +16,8 @@ await db.command({
                 'parentDirectoryId',
                 'userId',
                 'deletedAt',
-                'isStarred'
+                'isStarred',
+                'isShared',
             ],
             properties: {
                 _id: {
@@ -41,6 +42,9 @@ await db.command({
                 },
                 deletedAt: {
                     bsonType: ['date', 'null']
+                },
+                isShared: {
+                    bsonType: "bool"
                 },
                 __v: {
                     bsonType: 'int'
@@ -68,7 +72,6 @@ await db.command({
                 "deletedAt",
                 "isStarred",
                 "isShared",
-                "sharedWith"
             ],
             properties: {
                 _id: {
@@ -99,26 +102,6 @@ await db.command({
                 },
                 isShared: {
                     bsonType: "bool"
-                },
-                sharedWith: {
-                    bsonType: "array",
-                    items: {
-                        bsonType: "object",
-                        required: ["userId", "role"],
-                        properties: {
-                            _id: {
-                                bsonType: "objectId"
-                            },
-                            userId: {
-                                bsonType: "objectId"
-                            },
-                            role: {
-                                bsonType: "string",
-                                enum: ["viewer", "editor", "owner"]
-                            }
-                        },
-                        additionalProperties: false
-                    }
                 },
                 __v: {
                     bsonType: "int"

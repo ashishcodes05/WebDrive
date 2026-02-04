@@ -5,12 +5,13 @@ import ContextMenu from "./ContextMenu";
 import RenameDirectoryModal from "./RenameDirectoryModal";
 import { Link } from "react-router";
 
-export default function DirectoryRow({directory, selectedRow, renameDirectoryHandler, deleteDirectoryHandler, setSelectedRow, currentUser }) {
+export default function DirectoryRow({ directory, selectedRow, renameDirectoryHandler, deleteDirectoryHandler, setSelectedRow, currentUser }) {
     const { _id, name } = directory;
     const id = _id.toString();
     const [RenameModalOpen, setRenameModalOpen] = useState(false);
     const { icon: Icon, color } = getFileIcon("folder");
     const [menuPos, setMenuPos] = useState(null);
+    const [shareModalOpen, setShareModalOpen] = useState(false);
 
     function openMenu(e) {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -53,9 +54,11 @@ export default function DirectoryRow({directory, selectedRow, renameDirectoryHan
                     --
                 </td>
 
-                <td className="px-4 py-3 text-gray-400 flex items-center gap-1">
-                    <img referrerPolicy="no-referrer" src={currentUser?.picture} alt={currentUser?.name || "User"} className="w-6 h-6 rounded-full" />
-                    Me
+                <td className="px-4 py-3 text-gray-400">
+                   <div className="flex items-end gap-1">
+                        <img referrerPolicy="no-referrer" src={currentUser?.picture} alt={currentUser?.name || "User"} className="w-6 h-6 rounded-full" />
+                        <span className="text-gray-400">Me</span>
+                    </div>
                 </td>
 
                 <td className="px-8 py-3 text-right relative">
@@ -77,12 +80,21 @@ export default function DirectoryRow({directory, selectedRow, renameDirectoryHan
                             }}
                             onClose={closeMenu}
                             isDirectory={true}
+                            setShareModalOpen={setShareModalOpen}
                             directoryId={id}
                         />
                     )}
                 </td>
 
             </tr>
+            {shareModalOpen && (
+                <ShareModal
+                    open={shareModalOpen}
+                    resourceId={id}
+                    onClose={() => setShareModalOpen(false)}
+                    isDirectory={true}
+                />
+            )}
             {RenameModalOpen && <RenameDirectoryModal directoryId={id} directoryname={name} onClose={() => setRenameModalOpen(false)} renameDirectoryHandler={renameDirectoryHandler} />}
         </>
     );
