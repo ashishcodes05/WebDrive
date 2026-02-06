@@ -68,11 +68,21 @@ export const uploadFiles = async (req, res, next) => {
       permissionData.push({
         resourceId: _id,
         resourceType: "file",
-        parentDirectoryId: parDirId,
         userId: user._id,
         role: "owner"
       })
     })
+    const sharedUsers = await Permission.find({ resourceId: parDirId, role: {$ne: "owner"}}).select("userId role").lean();
+    for(const u of sharedUsers){
+      for(const { _id } of filesData){
+        permissionData.push({
+          resourceId: _id,
+          resourceType: "file",
+          userId: u.userId,
+          role: u.role
+        })
+      }
+    }
     await File.insertMany(filesData);
     await Permission.insertMany(permissionData);
     return res.status(201).json({ success: true, message: "Files Uploaded Successfully" });

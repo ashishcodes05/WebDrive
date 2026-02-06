@@ -10,9 +10,9 @@ const permissionSchema = new Schema({
         enum: ["file", "directory"],
         required: true
     },
-    parentDirectoryId: {
-        type: Schema.Types.ObjectId,
-        required: true
+    isRoot: {
+        type: Boolean,
+        default: false
     },
     userId: {
         type: Schema.Types.ObjectId,

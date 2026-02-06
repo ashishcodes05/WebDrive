@@ -5,7 +5,6 @@ import { useState } from "react";
 import ContextMenu from "./ContextMenu";
 import RenameFileModal from "./RenameFileModal";
 import ShareModal from "./ShareModal";
-import SharedUsersDropdown from "./SharedUsersDropdown";
 import { useAppContext } from "../Context/AppContext";
 import toast from "react-hot-toast";
 
@@ -15,12 +14,14 @@ export default function FileRow({
     deleteFileHandler,
     selectedRow,
     setSelectedRow,
-    toLink,
     role,
-    fetchSharedFiles
+    fetchSharedFiles,
+    isSharedFile,
+    isOwner=false, 
 }) {
-    const { _id: id, name, extension, size, sharedWith, userId } = file;
+    const { _id: id, name, extension, size, userId } = file;
     const dirId = file.parentDirectoryId;
+    console.log(userId)
 
     const readableSize = formatFileSize(size);
     const { icon: Icon, color } = getFileIcon(extension);
@@ -41,24 +42,7 @@ export default function FileRow({
         setMenuPos(null);
     }
 
-    const updateUserRole = async (targetUserId, newRole) => {
-        const response = await fetch("http://localhost:4000/share/update-role", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({
-                fileId: id,
-                userId: targetUserId,
-                role: newRole
-            })
-        });
-        const data = await response.json();
-        if (data.success) {
-            fetchDirectoryContents(dirId);
-            fetchSharedFiles?.();
-            toast.success("User role updated successfully");
-        }
-    };
+    const toLinkPath = isSharedFile ? `http://localhost:4000/share/file/${id}/view` : `http://localhost:4000/file/${id}`;
 
     return (
         <>
@@ -71,7 +55,7 @@ export default function FileRow({
                 `}
             >
                 <td className="px-4 py-3">
-                    <a href={toLink} className="flex items-center gap-3">
+                    <a href={toLinkPath} className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-white/5">
                             <Icon className={color} />
                         </div>
@@ -85,8 +69,8 @@ export default function FileRow({
 
                 <td className="px-4 py-3">
                     <div className="flex items-end gap-1">
-                        <img referrerPolicy="no-referrer" src={user?.picture} alt={user?.name || "User"} className="w-6 h-6 rounded-full" />
-                        <span className="text-gray-400">Me</span>
+                        <img referrerPolicy="no-referrer" src={userId?.picture} alt={userId?.name || "User"} className="w-6 h-6 rounded-full" />
+                        <span className="text-gray-400 truncate">{userId?.email === user.email ? "Me" : userId?.email}</span>
                     </div>
                 </td>
 
@@ -110,7 +94,8 @@ export default function FileRow({
                             onClose={closeMenu}
                             isDirectory={false}
                             setShareModalOpen={setShareModalOpen}
-                            toLink={toLink}
+                            toLinkPath={toLinkPath}
+                            isOwner={isOwner}
                             role={role}
                         />
                     )}

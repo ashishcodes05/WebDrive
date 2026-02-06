@@ -49,11 +49,7 @@ const ShareModal = ({ resourceId, open, onClose, isDirectory }) => {
 
   useEffect(() => {
     if (open) generateToken();
-  }, [open]);
-
-  useEffect(() => {
-    if (open) generateToken();
-  }, [permission]);
+  }, [open, permission]);
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">

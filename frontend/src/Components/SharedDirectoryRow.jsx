@@ -4,9 +4,12 @@ import { useState } from "react";
 import ContextMenu from "./ContextMenu";
 import RenameDirectoryModal from "./RenameDirectoryModal";
 import { Link } from "react-router";
+import { useAppContext } from "../Context/AppContext";
+import SharedUsersDropdown from "./SharedUsersDropdown";
 
-export default function SharedDirectoryRow({ directory, selectedRow, renameDirectoryHandler, deleteDirectoryHandler, setSelectedRow, currentUser, currentSharedUsers, toLink }) {
+export default function SharedDirectoryRow({ isSharedDirectory, directory, selectedRow, renameDirectoryHandler, deleteDirectoryHandler, setSelectedRow, currentUser, currentSharedUsers, toLink }) {
     const { _id, name } = directory;
+    const { user, loadingUser, fetchDirectoryContents } = useAppContext();
     const id = _id.toString();
     const [RenameModalOpen, setRenameModalOpen] = useState(false);
     const { icon: Icon, color } = getFileIcon("folder");
@@ -38,14 +41,17 @@ export default function SharedDirectoryRow({ directory, selectedRow, renameDirec
         setMenuPos(null);
     }
 
-    const { user, loadingUser, fetchDirectoryContents } = useAppContext();
+    const role = currentSharedUsers.find(u => u.userId.toString() === user.id.toString())?.role || "viewer";
+    const isViewer = role === "viewer";
+    const toLinkPath = `/share/directory/${id}/view?view=${isViewer}` || `/directory/${id}`;
+
     if (loadingUser) return null;
 
     return (
         <>
             <tr onClick={() => setSelectedRow(id)} className={`bg-black/20 border-b border-white/5 hover:bg-white/5 transition backdrop-blur-lg ${selectedRow === id ? "bg-white/10" : ""}`}>
                 <td className="px-4 py-3 cursor-pointer">
-                    <Link to={`/directory/${id}`} className="flex items-center gap-3">
+                    <Link to={toLinkPath} className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-white/5 icon-glow">
                             <Icon className={color} />
                         </div>
@@ -62,7 +68,7 @@ export default function SharedDirectoryRow({ directory, selectedRow, renameDirec
                         <SharedUsersDropdown
                             resource={directory}
                             currentUser={user}
-                            onRoleChange={updateUserRole}
+                            onRoleChange={() => {}}
                             currentSharedUsers={currentSharedUsers}
                         />
                     ) : (
@@ -94,6 +100,8 @@ export default function SharedDirectoryRow({ directory, selectedRow, renameDirec
                             isDirectory={true}
                             setShareModalOpen={setShareModalOpen}
                             directoryId={id}
+                            role={role}
+                            toLinkPath={toLinkPath}
                         />
                     )}
                 </td>

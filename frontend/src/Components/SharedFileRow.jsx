@@ -16,7 +16,6 @@ export default function SharedFileRow({
     selectedRow,
     setSelectedRow,
     toLink,
-    role,
     fetchSharedFiles,
     currentSharedUsers
 }) {
@@ -61,6 +60,10 @@ export default function SharedFileRow({
         }
     };
 
+    const role = currentSharedUsers.find(u => u.userId.toString() === user.id.toString())?.role || "viewer";
+    const isViewer = role === "viewer";
+    const toLinkPath = `http://localhost:4000/share/file/${id}/view` || `http://localhost:4000/file/${id}`;
+
     return (
         <>
             <tr
@@ -72,7 +75,7 @@ export default function SharedFileRow({
                 `}
             >
                 <td className="px-4 py-3">
-                    <a href={toLink} className="flex items-center gap-3">
+                    <a href={toLinkPath} className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-white/5">
                             <Icon className={color} />
                         </div>
@@ -120,7 +123,7 @@ export default function SharedFileRow({
                             onClose={closeMenu}
                             isDirectory={false}
                             setShareModalOpen={setShareModalOpen}
-                            toLink={toLink}
+                            toLinkPath={toLinkPath}
                             role={role}
                         />
                     )}

@@ -9,6 +9,7 @@ import {
   Trash2,
   Share,
   Share2,
+  UserCog2,
 } from "lucide-react";
 
 export default function ContextMenu({
@@ -20,10 +21,11 @@ export default function ContextMenu({
   directoryId,
   onClose,
   isDirectory,
+  isOwner=false,
   setShareModalOpen,
   setMenuPos,
-  toLink,
-  role
+  role,
+  toLinkPath
 }) {
   const BASE_URL = "http://localhost:4000";
   const menuRef = useRef(null);
@@ -59,12 +61,12 @@ export default function ContextMenu({
       "
     >
       {!isDirectory ? (
-        <a href={toLink} className={itemClass}>
+        <a href={toLinkPath} className={itemClass}>
           <File className="w-4 h-4 text-primary-accent" />
           Open
         </a>
       ) : (
-        <Link to={`/directory/${directoryId}`} className={itemClass}>
+        <Link to={toLinkPath} className={itemClass}>
           <FolderOpen className="w-4 h-4 text-primary-accent" />
           Open
         </Link>
@@ -77,6 +79,10 @@ export default function ContextMenu({
         <Share2 className="w-4 h-4 text-text-secondary" />
         Share
       </button>}
+      {isOwner && <button className={itemClass}>
+        <UserCog2 className="w-4 h-4 text-text-secondary" />
+        Manage Access
+      </button>}
 
         {!isViewer && (<button onClick={onRename} className={itemClass}>
           <Pencil className="w-4 h-4 text-text-secondary" />
@@ -85,7 +91,7 @@ export default function ContextMenu({
 
       {!isDirectory && (
         <a
-          href={`${toLink}?action=download`}
+          href={`${toLinkPath}?action=download`}
           className={itemClass}
         >
           <Download className="w-4 h-4 text-emerald-400" />

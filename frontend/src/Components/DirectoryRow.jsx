@@ -4,15 +4,15 @@ import { useState } from "react";
 import ContextMenu from "./ContextMenu";
 import RenameDirectoryModal from "./RenameDirectoryModal";
 import { Link } from "react-router";
+import ShareModal from "./ShareModal";
 
-export default function DirectoryRow({ directory, selectedRow, renameDirectoryHandler, deleteDirectoryHandler, setSelectedRow, currentUser }) {
+export default function DirectoryRow({ isSharedDirectory, isOwner, role, directory, selectedRow, renameDirectoryHandler, deleteDirectoryHandler, setSelectedRow, currentUser }) {
     const { _id, name } = directory;
     const id = _id.toString();
     const [RenameModalOpen, setRenameModalOpen] = useState(false);
     const { icon: Icon, color } = getFileIcon("folder");
     const [menuPos, setMenuPos] = useState(null);
     const [shareModalOpen, setShareModalOpen] = useState(false);
-
     function openMenu(e) {
         const rect = e.currentTarget.getBoundingClientRect();
         const menuWidth = 160;
@@ -38,11 +38,13 @@ export default function DirectoryRow({ directory, selectedRow, renameDirectoryHa
         setMenuPos(null);
     }
 
+    const toLinkPath = isSharedDirectory ? `/share/directory/${id}/view` : `/directory/${id}`;
+
     return (
         <>
             <tr onClick={() => setSelectedRow(id)} className={`bg-black/20 border-b border-white/5 hover:bg-white/5 transition backdrop-blur-lg ${selectedRow === id ? "bg-white/10" : ""}`}>
                 <td className="px-4 py-3 cursor-pointer">
-                    <Link to={`/directory/${id}`} className="flex items-center gap-3">
+                    <Link to={toLinkPath} className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-white/5 icon-glow">
                             <Icon className={color} />
                         </div>
@@ -75,13 +77,16 @@ export default function DirectoryRow({ directory, selectedRow, renameDirectoryHa
                             }}
                             onDownload={() => alert("Download")}
                             onDelete={() => {
-                                deleteDirectoryHandler(id);
+                                deleteDirectoryHandler(id, role);
                                 setMenuPos(null);
                             }}
                             onClose={closeMenu}
                             isDirectory={true}
                             setShareModalOpen={setShareModalOpen}
                             directoryId={id}
+                            role={role}
+                            toLinkPath={toLinkPath}
+                            isOwner={isOwner}
                         />
                     )}
                 </td>
@@ -95,7 +100,7 @@ export default function DirectoryRow({ directory, selectedRow, renameDirectoryHa
                     isDirectory={true}
                 />
             )}
-            {RenameModalOpen && <RenameDirectoryModal directoryId={id} directoryname={name} onClose={() => setRenameModalOpen(false)} renameDirectoryHandler={renameDirectoryHandler} />}
+            {RenameModalOpen && <RenameDirectoryModal role={role} directoryId={id} directoryname={name} onClose={() => setRenameModalOpen(false)} renameDirectoryHandler={renameDirectoryHandler} />}
         </>
     );
 }

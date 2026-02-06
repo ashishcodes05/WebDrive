@@ -13,6 +13,7 @@ import ProfileSettings from './Pages/ProfileSettings.jsx'
 import Users from './Pages/Users.jsx';
 import ManageRoles from './Pages/ManageRoles.jsx'
 import SharedFilesPage from './Pages/SharedFilesPage.jsx'
+import SharedDirectoryView from './Pages/SharedDIrectoryView.jsx'
 
 const router = createBrowserRouter([
   {
@@ -67,6 +68,10 @@ const router = createBrowserRouter([
   }, {
     path: "/share/files",
     element: <SharedFilesPage />
+  },
+  {
+    path: "/share/directory/:dirId/view",
+    element: <SharedDirectoryView />
   }
 ]);
 

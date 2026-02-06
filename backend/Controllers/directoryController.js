@@ -46,13 +46,23 @@ export const createDirectory = async (req, res, next) => {
       parentDirectoryId: parDirId,
       userId: user._id,
     });
-    await Permission.create({
+    const permissionData = [];
+    permissionData.push({
       resourceId: insertedDirectory._id,
       resourceType: "directory",
-      parentDirectoryId: parDirId,
       userId: user._id,
       role: "owner"
     })
+    const sharedUsers = await Permission.find({ resourceId: parDirId, role: { $ne : "owner"} }).select("userId role").lean();
+    for(const u of sharedUsers){
+      permissionData.push({
+        resourceId: insertedDirectory._id,
+        resourceType: "directory",
+        userId: u.userId,
+        role: u.role
+      })
+    }
+    await Permission.create(permissionData);
     return res.status(200).json({ success: true, message: "Folder Created Successfully" });
   } catch (err) {
     next(err);

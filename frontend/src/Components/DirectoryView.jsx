@@ -336,6 +336,7 @@ const DirectoryView = () => {
                     deleteDirectoryHandler={deleteDirectoryHandler}
                     currentUser={user}
                     isDirectory={true}
+                    isOwner={true}
                   />
                 ))}
 
@@ -360,9 +361,9 @@ const DirectoryView = () => {
                       setSelectedRow={setSelectedRow}
                       renameFileHandler={renameFileHandler}
                       deleteFileHandler={deleteFileHandler}
-                      role={role}
                       currentUser={file.userId._id}
                       isDirectory={false}
+                      isOwner={true}
                     />
                   );
                 })}
