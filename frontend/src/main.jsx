@@ -14,6 +14,8 @@ import Users from './Pages/Users.jsx';
 import ManageRoles from './Pages/ManageRoles.jsx'
 import SharedFilesPage from './Pages/SharedFilesPage.jsx'
 import SharedDirectoryView from './Pages/SharedDIrectoryView.jsx'
+import { Share } from 'lucide-react'
+import UsersManagementPage from './Components/UsersManagementPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -72,6 +74,10 @@ const router = createBrowserRouter([
   {
     path: "/share/directory/:dirId/view",
     element: <SharedDirectoryView />
+  },
+  {
+    path: "/share/users/:resourceType/:resourceId",
+    element: <UsersManagementPage />
   }
 ]);
 

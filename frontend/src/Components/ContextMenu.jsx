@@ -44,6 +44,7 @@ export default function ContextMenu({
     "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-200 hover:bg-white/10 transition w-full";
   
   const isViewer = role === "viewer";
+  const manageAccessLink = `/share/users/${isDirectory ? "directory" : "file"}/${isDirectory ? directoryId : fileId}`;
 
   return createPortal(
     <div
@@ -79,10 +80,10 @@ export default function ContextMenu({
         <Share2 className="w-4 h-4 text-text-secondary" />
         Share
       </button>}
-      {isOwner && <button className={itemClass}>
+      {isOwner && <Link to={manageAccessLink} className={itemClass}>
         <UserCog2 className="w-4 h-4 text-text-secondary" />
         Manage Access
-      </button>}
+      </Link>}
 
         {!isViewer && (<button onClick={onRename} className={itemClass}>
           <Pencil className="w-4 h-4 text-text-secondary" />

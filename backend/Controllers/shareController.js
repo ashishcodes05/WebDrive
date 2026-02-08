@@ -298,3 +298,28 @@ export const updateRole = async(req, res, next) => {
     }
 }
 
+export const fetchResourceUsers = async(req, res, next) => {
+    try {
+        const { resourceId, resourceType } = req.params;
+        const user = req.user;
+        const hasPermission = await Permission.findOne({ resourceId, resourceType, userId: user._id, role: "owner" }).select("_id").lean();
+        if(!hasPermission){
+            return res.status(403).json({success: false, message: "Forbidden: You don't have the required permission"});
+        }
+        const permissions = await Permission.find({ resourceId, resourceType }).populate("userId", "_id email picture").lean();
+        const users = permissions.map((p) => {
+            return {
+                userId: p.userId._id.toString(),
+                email: p.userId.email,
+                picture: p.userId.picture,
+                role: p.role
+            }
+        });
+        return res.status(200).json({ success: true, users });
+    } catch(err){
+        next(err);
+    }
+}
+
+
+
