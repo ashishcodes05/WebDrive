@@ -1,5 +1,5 @@
 import express from "express";
-import { deleteSharedDirectory, deleteSharedFile, fetchResourceUsers, generateToken, getSharedDirectoryFiles, getSharedFilesAndDirectories, getSharedUsers, renameSharedDirectory, renameSharedFile, updateRole, validateTokenAndViewDirectory, validateTokenAndViewFile, viewFile } from "../Controllers/shareController.js";
+import { deleteSharedDirectory, deleteSharedFile, fetchResourceUsers, generateToken, getSharedDirectoryFiles, getSharedFilesAndDirectories, getSharedUsers, renameSharedDirectory, renameSharedFile, revokeAccess, updateRole, validateTokenAndViewDirectory, validateTokenAndViewFile, viewFile } from "../Controllers/shareController.js";
 import { checkShareAuth, checkAuth } from "../Middlewares/authMiddleware.js";
 
 const router = express.Router();
@@ -17,5 +17,6 @@ router.delete("/file/:fileId", checkAuth, deleteSharedFile);
 router.patch("/directory/:dirId", checkAuth, renameSharedDirectory);
 router.delete("/directory/:dirId", checkAuth, deleteSharedDirectory);
 router.get("/:resourceType/:resourceId/manage", checkAuth, fetchResourceUsers);
+router.delete("/revoke", checkAuth, revokeAccess)
 
 export default router;

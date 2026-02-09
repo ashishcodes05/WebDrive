@@ -29,7 +29,7 @@ export default function ContextMenu({
 }) {
   const BASE_URL = "http://localhost:4000";
   const menuRef = useRef(null);
-
+  console.log(fileId)
   useEffect(() => {
     const handleClick = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {

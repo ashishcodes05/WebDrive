@@ -321,5 +321,34 @@ export const fetchResourceUsers = async(req, res, next) => {
     }
 }
 
+const recursiveRevoke = async(dirId, resourceIds) => {
+    const fileIds = (await File.find({ parentDirectoryId: dirId }).select("_id").lean()).map((file) => file._id);
+    const dirIds = (await Directory.find({ parentDirectoryId: dirId }).select("_id").lean()).map((dir) => dir._id);
+    resourceIds.push(fileIds);
+    resourceIds.push(dirIds);
+    for(const dirId of dirIds){
+        await recursiveRevoke(dirId, resourceIds);
+    }
+}
 
+export const revokeAccess = async(req, res, next) => {
+    try {
+        const user = req.user;
+        const { resourceId, userId } = req.body;
+        if(!resourceId || !userId){
+            return res.status(401).json({ success: false, message: "Invalid Input" });
+        }
+        const hasPermission = await Permission.findOne({ userId: user._id,  resourceId, role: "owner" }).select("_id").lean();
+        if(!hasPermission){
+            return res.status(403).json({ success: false, message: "Forbidden: You don't have the required permission" });
+        }
+        const resourceIds = []
+        resourceIds.push(resourceId);
+        await recursiveRevoke(resourceId, resourceIds);
+        await Permission.deleteMany({ resourceId:{ $in: resourceIds }, userId });
+        return res.status(200).json({ success: true, message: "The Access of the resource for the selected user has been revoked"});
+    } catch(err){
+        next(err);
+    }
+}
 

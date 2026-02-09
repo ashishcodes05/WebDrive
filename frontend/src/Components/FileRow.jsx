@@ -93,6 +93,7 @@ export default function FileRow({
                             }}
                             onClose={closeMenu}
                             isDirectory={false}
+                            fileId={id}
                             setShareModalOpen={setShareModalOpen}
                             toLinkPath={toLinkPath}
                             isOwner={isOwner}
