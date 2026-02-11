@@ -14,8 +14,12 @@ import Users from './Pages/Users.jsx';
 import ManageRoles from './Pages/ManageRoles.jsx'
 import SharedFilesPage from './Pages/SharedFilesPage.jsx'
 import SharedDirectoryView from './Pages/SharedDIrectoryView.jsx'
-import { Share } from 'lucide-react'
 import UsersManagementPage from './Components/UsersManagementPage.jsx'
+import FeatureSection from './Components/FeatureSection.jsx'
+import AboutSection from './Components/AboutSection.jsx'
+import PricingSection from './Components/PricingSection.jsx'
+import NavigatingPage from './Pages/NavigatingPage.jsx'
+import NotFound from './Components/NotFound.jsx'
 
 const router = createBrowserRouter([
   {
@@ -25,94 +29,123 @@ const router = createBrowserRouter([
     ),
     children: [
       {
-        index: true,
-        element: <Home />
+        path: "/",
+        element: <NavigatingPage />,
+        children: [
+          {
+            index: true,
+            element: <Home />
+          },
+          {
+            path: "features",
+            element: (
+              <FeatureSection />
+            )
+          },
+          {
+            path: "about",
+            element: (
+              <AboutSection />
+            )
+          },
+          {
+            path: "pricing",
+            element: (
+              <PricingSection />
+            )
+          }
+        ]
       },
       {
-        path: "/directory",
+        path: "directory",
         element: <MyFiles />
       },
       {
-        path: "/directory/:dirId",
+        path: "directory/:dirId",
         element: <MyFiles />
-      }
+      },
+
     ],
   },
   {
-    path: "/login",
+    path: "login",
     element: (
       <Login />
     )
   },
   {
-    path: "/register",
+    path: "register",
     element: (
       <Register />
     )
   },
   {
-    path: "/settings",
+    path: "settings",
     element: (
       <ProfileSettings />
     )
   },
   {
-    path: "/users",
+    path: "users",
     element: (
       <Users />
     )
   },
   {
-    path: "/users/update-roles",
+    path: "users/update-roles",
     element: (
       <ManageRoles />
     )
   }, {
-    path: "/share/files",
+    path: "share/files",
     element: <SharedFilesPage />
   },
   {
-    path: "/share/directory/:dirId/view",
+    path: "share/directory/:dirId/view",
     element: <SharedDirectoryView />
   },
   {
-    path: "/share/users/:resourceType/:resourceId",
+    path: "share/users/:resourceType/:resourceId",
     element: <UsersManagementPage />
+  },
+  {
+    path: "*",
+    element: <NotFound />
   }
 ]);
 
 const toastOptions = {
-          duration: 4200,
-          style: {
-            background: "rgba(30, 41, 59, 0.85)",
-            color: "#ffffff",
-            backdropFilter: "blur(14px)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            borderRadius: "14px",
-            padding: "14px 16px",
-            boxShadow:
-              "0 20px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05)",
-          },
-          className: "text-sm",
-          success: {
-            iconTheme: {
-              primary: "#4f8bff",
-              secondary: "#0f0f1a",
-            },
-          },
-          error: {
-            iconTheme: {
-              primary: "#ef4444",
-              secondary: "#0f0f1a",
-            },
-          },
-          loading: {
-            iconTheme: {
-              primary: "#9ca3af",
-              secondary: "#0f0f1a",
-            },
-          },
-        };
+  duration: 4200,
+  style: {
+    background: "rgba(30, 41, 59, 0.85)",
+    color: "#ffffff",
+    backdropFilter: "blur(14px)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: "14px",
+    padding: "14px 16px",
+    boxShadow:
+      "0 20px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05)",
+  },
+  className: "text-sm",
+  success: {
+    iconTheme: {
+      primary: "#4f8bff",
+      secondary: "#0f0f1a",
+    },
+  },
+  error: {
+    iconTheme: {
+      primary: "#ef4444",
+      secondary: "#0f0f1a",
+    },
+  },
+  loading: {
+    iconTheme: {
+      primary: "#9ca3af",
+      secondary: "#0f0f1a",
+    },
+  },
+};
 
 createRoot(document.getElementById('root')).render(
   <AppProvider>

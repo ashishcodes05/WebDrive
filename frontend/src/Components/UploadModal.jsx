@@ -60,7 +60,6 @@ const UploadModal = ({ onClose }) => {
     function handleFiles(e) {
         const files = Array.from(e.target.files);
         if (files.length) addFiles(files);
-        // Allow re-selecting the same file names by clearing the input value
         e.target.value = "";
     }
 

@@ -7,7 +7,7 @@ import { Link } from "react-router";
 import ShareModal from "./ShareModal";
 
 export default function DirectoryRow({ isSharedDirectory, isOwner, role, directory, selectedRow, renameDirectoryHandler, deleteDirectoryHandler, setSelectedRow, currentUser }) {
-    const { _id, name } = directory;
+    const { _id, name, userId } = directory;
     const id = _id.toString();
     const [RenameModalOpen, setRenameModalOpen] = useState(false);
     const { icon: Icon, color } = getFileIcon("folder");
@@ -56,10 +56,10 @@ export default function DirectoryRow({ isSharedDirectory, isOwner, role, directo
                     --
                 </td>
 
-                <td className="px-4 py-3 text-gray-400">
-                   <div className="flex items-end gap-1">
-                        <img referrerPolicy="no-referrer" src={currentUser?.picture} alt={currentUser?.name || "User"} className="w-6 h-6 rounded-full" />
-                        <span className="text-gray-400">Me</span>
+                <td className="px-4 py-3">
+                    <div className="flex items-end gap-1">
+                        <img referrerPolicy="no-referrer" src={userId?.picture} alt={userId?.name || "User"} className="w-6 h-6 rounded-full" />
+                        <span className="text-gray-400 truncate">{userId?.email === currentUser.email ? "Me" : userId?.email}</span>
                     </div>
                 </td>
 

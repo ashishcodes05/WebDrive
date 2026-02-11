@@ -1,7 +1,7 @@
-import directoryView from "./directoryView.png"
+import image from "./image.png"
 
 const assets = {
-    directoryView
+    directoryView: image
 }
 
 export default assets;

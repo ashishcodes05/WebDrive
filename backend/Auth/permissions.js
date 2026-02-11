@@ -1,4 +1,6 @@
 export const PERMISSIONS = {
+  ADMIN_RESOURCE_OPERATIONS: "admin:ops",
+
   AUTH_LOGIN: "auth:login",
   AUTH_LOGOUT_SELF: "auth:logout:self",
   AUTH_LOGOUT_ALL_SELF: "auth:logout-all:self",

@@ -15,6 +15,7 @@ import { Link, useNavigate } from "react-router";
 import toast from "react-hot-toast";
 import DeleteAccountModal from "../Components/DeleteAccountModal";
 import { useAppContext } from "../Context/AppContext";
+import BackButton from "../Components/BackButton";
 
 const PasswordInput = ({ label, description, value, onChange }) => {
     const [show, setShow] = useState(false);
@@ -64,29 +65,6 @@ const ProfileSettingsPage = () => {
     const [deletingAccount, setDeletingAccount] = useState(false);
 
     const navigate = useNavigate();
-
-    // const fetchUserData = async () => {
-    //     try {
-    //       const response = await fetch(`${BASE_URL}/user/`, {
-    //         method: "GET",
-    //         credentials: 'include'
-    //       });
-    //       const data = await response.json();
-    //       if (data.success) {
-    //         console.log(data.user)
-    //         setUser(data.user);
-    //         setName(data.user.name);
-    //         setHasPassword(data.user.hasPassword);
-    //       } else {
-    //         toast.error("Please login to access profile settings");
-    //         navigate("/login");
-    //       }
-    //     } catch (err) {
-    //       console.error("Error fetching user data:", err);
-    //     } finally {
-    //       setLoadingUser(false);
-    //     }
-    //   }
 
     const updateProfile = async () => {
         if (name === user?.name) {
@@ -187,20 +165,25 @@ const ProfileSettingsPage = () => {
     if (loadingUser) return <Loader text="Loading profile..." />;
     return (
         <div className="relative min-h-screen bg-[var(--color-background)] px-6 py-14 text-white overflow-hidden">
-
-            <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-[var(--color-primary)] opacity-20 blur-3xl" />
-            <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-[var(--color-secondary)] opacity-20 blur-3xl" />
+            <div className="absolute inset-0 pointer-events-none z-0">
+                <div
+                    className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full blur-[140px] opacity-40"
+                    style={{ background: "var(--color-primary-accent)" }}
+                />
+                <div
+                    className="absolute top-1/3 -right-40 w-[450px] h-[450px] rounded-full blur-[140px] opacity-30"
+                    style={{ background: "var(--color-secondary-accent)" }}
+                />
+                <div
+                    className="absolute bottom-0 left-1/4 w-[600px] h-[300px] rounded-full blur-[160px] opacity-20"
+                    style={{ background: "var(--color-secondary)" }}
+                />
+            </div>
 
             <div className="relative mx-auto max-w-5xl flex flex-col gap-8">
-                <Link to="/" className="flex items-center gap-4 flex-1/4">
-                    <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-gradient-to-br from-primary-accent to-secondary-accent shadow-lg shadow-primary-accent/30">
-                        <Cloud size={26} className="text-white" />
-                    </div>
-
-                    <span className="text-2xl font-semibold text-white tracking-tight">
-                        Web<span className="text-secondary-accent">Drive</span>
-                    </span>
-                </Link>
+                <div>
+                    <BackButton />
+                </div>
                 <div>
                     <h1 className="text-3xl font-semibold">Account Settings</h1>
                     <p className="mt-2 max-w-2xl text-sm text-[var(--color-text-secondary)]">

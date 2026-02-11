@@ -7,12 +7,8 @@
   --color-secondary: #7b61ff;
   --color-primary-accent: #4f8bff;
   --color-secondary-accent: #9b5cff;
-
-  /* 🧾 Text Colors */
   --color-text-main: #ffffff;
   --color-text-secondary: #9ca3af;
-
-  /* 📦 UI Elements */
   --color-card-bg: #1e293b;
 }
 
@@ -20,6 +16,14 @@
   font-family: "Inter", sans-serif;
   scrollbar-width: thin;
   scrollbar-color: var(--color-text-accent) transparent;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+body {
+  overflow-y: scroll;
 }
 
 @keyframes pop {
