@@ -18,10 +18,11 @@ export default function FileRow({
     fetchSharedFiles,
     isSharedFile,
     isOwner=false, 
+    isAdminFile=false
 }) {
     const { _id: id, name, extension, size, userId } = file;
     const dirId = file.parentDirectoryId;
-    console.log(userId)
+    console.log(userId._id)
 
     const readableSize = formatFileSize(size);
     const { icon: Icon, color } = getFileIcon(extension);
@@ -42,7 +43,7 @@ export default function FileRow({
         setMenuPos(null);
     }
 
-    const toLinkPath = isSharedFile ? `http://localhost:4000/share/file/${id}/view` : `http://localhost:4000/file/${id}`;
+    const toLinkPath = isSharedFile ? `http://localhost:4000/share/file/${id}/view` : isAdminFile ? `http://localhost:4000/admin/user/${userId._id.toString()}/file/${id}` : `http://localhost:4000/file/${id}`;
 
     return (
         <>

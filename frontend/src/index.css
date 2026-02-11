@@ -22,10 +22,11 @@ html {
   scrollbar-gutter: stable;
 }
 
-body {
+body { 
   overflow-y: scroll;
+  margin: 0; 
+  overflow-x: hidden; 
 }
-
 @keyframes pop {
   0% {
     opacity: 0;

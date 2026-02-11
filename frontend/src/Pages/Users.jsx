@@ -3,7 +3,7 @@ import { Users, CircleDot, Trash2, LogOut, Shield } from "lucide-react";
 import { useAppContext } from "../Context/AppContext";
 import ForceDeleteModal from "../Components/ForceDeleteModal";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 const UsersPage = () => {
   const BASE_URL = "http://localhost:4000";
@@ -133,7 +133,7 @@ const UsersPage = () => {
                     key={u._id}
                     className="grid grid-cols-[2fr_1fr_1fr_1fr] px-8 py-5 items-center hover:bg-white/5 transition"
                   >
-                    <div className="flex items-center gap-4 min-w-0">
+                    <Link to={`/user/${u._id}/directory`} className="flex items-center gap-4 min-w-0">
                       <img
                         referrerPolicy="no-referrer"
                         src={
@@ -150,7 +150,7 @@ const UsersPage = () => {
                           {u.email}
                         </p>
                       </div>
-                    </div>
+                    </Link>
 
                     <div>
                       <span

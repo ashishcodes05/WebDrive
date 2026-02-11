@@ -112,17 +112,18 @@ export const changeRole = async (req, res, next) => {
 
 export const getDirectoryContents = async (req, res, next) => {
     try {
-        if (req.user.role !== "owner" && req.user.role !== "admin") {
-            return res.status(403).json({ success: false, message: "Forbidden: You don't have the required permission" });
-        }
         const { userId } = req.params;
+        console.log(userId)
         const user = await User.findById(userId).select("rootDirectory").lean();
+        console.log(user)
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
-        const parentDirectoryId = req.params.dirId || user.rootDirectory;
-        const files = await File.find({ parentDirectoryId, userId }).populate("userId", "email picture").lean();
-        const directories = await Directory.find({ parentDirectoryId, userId }).populate("userId", 'email picture').lean();
+        console.log(req.params.dirId || user.rootDirectory.toString())
+        const parentDirectoryId = req.params?.dirId ? req.params?.dirId : user.rootDirectory.toString();
+        console.log(parentDirectoryId)
+        const files = await File.find({ parentDirectoryId, userId }).populate("userId", "email picture _id").lean();
+        const directories = await Directory.find({ parentDirectoryId, userId }).populate("userId", 'email picture _id').lean();
         return res.status(200).json({ success: true, files, directories });
     } catch (err) {
         next(err)
@@ -131,9 +132,6 @@ export const getDirectoryContents = async (req, res, next) => {
 
 export const renameDirectory = async (req, res, next) => {
     try {
-        if (req.user.role !== "owner" && req.user.role !== "admin") {
-            return res.status(403).json({ success: false, message: "Forbidden: You don't have the required permission" });
-        }
         const { userId, dirId } = req.params;
         const { newDirectoryName } = req.body;
         const isExists = await Directory.findOneAndUpdate({ _id: dirId, userId }, { name: newDirectoryName }).select("_id").lean();
@@ -148,9 +146,6 @@ export const renameDirectory = async (req, res, next) => {
 
 export const deleteDirectory = async (req, res, next) => {
     try {
-        if (req.user.role !== "owner" && req.user.role !== "admin") {
-            return res.status(403).json({ success: false, message: "Forbidden: You don't have the required permission" });
-        }
         const { userId, dirId } = req.params;
         const isExists = await Directory.findOneAndDelete({ _id: dirId, userId }).select("_id").lean();
         if (!isExists) {
@@ -164,9 +159,6 @@ export const deleteDirectory = async (req, res, next) => {
 
 export const viewFile = async (req, res, next) => {
     try {
-        if (req.user.role !== "owner" && req.user.role !== "admin") {
-            return res.status(403).json({ success: false, message: "Forbidden: You don't have the required permission" });
-        }
         const { userId, fileId } = req.params;
         const { action } = req.query;
         const fileData = await File.findOne({ _id: fileId, userId }).select("name extension").lean();
@@ -195,12 +187,9 @@ export const viewFile = async (req, res, next) => {
 
 export const renameFile = async(req, res, next) => {
     try {
-        if (req.user.role !== "owner" && req.user.role !== "admin") {
-            return res.status(403).json({ success: false, message: "Forbidden: You don't have the required permission" });
-        }
         const { userId, fileId } = req.params;
         const { newFilename } = req.body;
-        const isExists = await File.findOneAndDelete({ _id: fileId, userId }, {name: newFilename}).select("_id").lean();
+        const isExists = await File.findOneAndUpdate({ _id: fileId, userId }, {name: newFilename}).select("_id").lean();
         if(!isExists){
             return res.status(404).json({ success: false, message: "File not found"});
         }
@@ -212,15 +201,25 @@ export const renameFile = async(req, res, next) => {
 
 export const deleteFile = async(req, res, next) => {
     try {
-        if (req.user.role !== "owner" && req.user.role !== "admin") {
-            return res.status(403).json({ success: false, message: "Forbidden: You don't have the required permission" });
-        }
         const { userId, fileId } = req.params;
         const isExists = await File.findOneAndDelete({ _id: fileId, userId }).select("_id").lean();
         if(!isExists){
             return res.status(404).json({ success: false, message: "File not found"});
         }
         return res.status(200).json({ success: true, message: "File renamed Successfully"});
+    } catch(err){
+        next(err);
+    }
+}
+
+export const getUser = async(req, res, next) => {
+    try {
+        const { userId } = req.params;
+        if(!userId){
+            return res.status(401).json({ success: false, message: "Invalid Input"});
+        }
+        const user = await User.findById(userId).select("email picture").lean();
+        return res.status(200).json({ success: true, user});
     } catch(err){
         next(err);
     }

@@ -6,7 +6,7 @@ import RenameDirectoryModal from "./RenameDirectoryModal";
 import { Link } from "react-router";
 import ShareModal from "./ShareModal";
 
-export default function DirectoryRow({ isSharedDirectory, isOwner, role, directory, selectedRow, renameDirectoryHandler, deleteDirectoryHandler, setSelectedRow, currentUser }) {
+export default function DirectoryRow({ isSharedDirectory, isOwner, role, directory, selectedRow, renameDirectoryHandler, deleteDirectoryHandler, setSelectedRow, currentUser, isAdminDirectory=false }) {
     const { _id, name, userId } = directory;
     const id = _id.toString();
     const [RenameModalOpen, setRenameModalOpen] = useState(false);
@@ -38,7 +38,7 @@ export default function DirectoryRow({ isSharedDirectory, isOwner, role, directo
         setMenuPos(null);
     }
 
-    const toLinkPath = isSharedDirectory ? `/share/directory/${id}/view` : `/directory/${id}`;
+    const toLinkPath = isSharedDirectory ? `/share/directory/${id}/view` : isAdminDirectory ? `/user/${userId._id.toString()}/directory/${id}` : `/directory/${id}`;
 
     return (
         <>

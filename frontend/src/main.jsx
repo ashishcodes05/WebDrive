@@ -20,6 +20,7 @@ import AboutSection from './Components/AboutSection.jsx'
 import PricingSection from './Components/PricingSection.jsx'
 import NavigatingPage from './Pages/NavigatingPage.jsx'
 import NotFound from './Components/NotFound.jsx'
+import UsersDirectoryView from './Pages/UsersDirectoryView.jsx'
 
 const router = createBrowserRouter([
   {
@@ -107,6 +108,14 @@ const router = createBrowserRouter([
   {
     path: "share/users/:resourceType/:resourceId",
     element: <UsersManagementPage />
+  },
+  {
+    path: "user/:userId/directory",
+    element: <UsersDirectoryView />
+  },
+  {
+    path: "user/:userId/directory/:dirId",
+    element: <UsersDirectoryView />
   },
   {
     path: "*",
