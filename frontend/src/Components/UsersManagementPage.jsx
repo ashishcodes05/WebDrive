@@ -9,6 +9,7 @@ import {
   Crown,
   Trash2,
 } from "lucide-react";
+import BackButton from "./BackButton";
 
 const ROLE_META = {
   viewer: {
@@ -88,14 +89,24 @@ const UsersManagementPage = () => {
 
   return (
     <div className="min-h-screen bg-background px-8 py-10 text-white">
-      <div className="max-w-3xl mx-auto">
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 mb-8 text-text-secondary hover:text-white transition"
-        >
-          <ArrowLeft size={18} />
-          Back
-        </button>
+      <div className="absolute inset-0 pointer-events-none z-0">
+          <div
+            className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full blur-[140px] opacity-40"
+            style={{ background: "var(--color-primary-accent)" }}
+          />
+          <div
+            className="absolute top-1/3 -right-40 w-[450px] h-[450px] rounded-full blur-[140px] opacity-30"
+            style={{ background: "var(--color-secondary-accent)" }}
+          />
+          <div
+            className="absolute bottom-0 left-1/4 w-[600px] h-[300px] rounded-full blur-[160px] opacity-20"
+            style={{ background: "var(--color-secondary)" }}
+          />
+        </div>
+      <div className="max-w-5xl mx-auto">
+        <div className="py-4">
+          <BackButton label="back" />
+        </div>
 
         <div className="flex items-center gap-3 mb-8">
           <div className="h-11 w-11 rounded-xl bg-primary-accent/20 flex items-center justify-center">

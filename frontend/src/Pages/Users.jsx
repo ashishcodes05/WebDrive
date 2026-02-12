@@ -4,6 +4,7 @@ import { useAppContext } from "../Context/AppContext";
 import ForceDeleteModal from "../Components/ForceDeleteModal";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router";
+import BackButton from "../Components/BackButton";
 
 const UsersPage = () => {
   const BASE_URL = "http://localhost:4000";
@@ -86,8 +87,25 @@ const UsersPage = () => {
   const offline = users.length - online;
   const isManager = user?.role === "manager";
   return (
-    <div className="min-h-screen bg-[var(--color-background)] px-10 py-8">
+    <div className="min-h-screen relative bg-[var(--color-background)] px-10 py-8">
+      <div className="absolute inset-0 pointer-events-none z-0">
+          <div
+            className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full blur-[140px] opacity-40"
+            style={{ background: "var(--color-primary-accent)" }}
+          />
+          <div
+            className="absolute top-1/3 -right-40 w-[450px] h-[450px] rounded-full blur-[140px] opacity-30"
+            style={{ background: "var(--color-secondary-accent)" }}
+          />
+          <div
+            className="absolute bottom-0 left-1/4 w-[600px] h-[300px] rounded-full blur-[160px] opacity-20"
+            style={{ background: "var(--color-secondary)" }}
+          />
+        </div>
       <div className="max-w-7xl mx-auto">
+        <div className="py-4">
+          <BackButton />
+        </div>
         <div className="flex items-center justify-between mb-10">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-xl bg-[var(--color-primary)]/15 flex items-center justify-center">

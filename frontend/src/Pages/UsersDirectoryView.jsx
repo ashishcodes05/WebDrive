@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { useAppContext } from "../Context/AppContext";
 import DirectoryRow from "../Components/DirectoryRow";
 import FileRow from "../Components/FileRow";
+import BackButton from "../Components/BackButton";
 
 const UsersDirectoryView = () => {
     const BASE_URL = "http://localhost:4000";
@@ -128,16 +129,25 @@ const UsersDirectoryView = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[var(--color-background)] px-10 py-8">
+        <div className="min-h-screen relative bg-[var(--color-background)] px-10 py-8">
+            <div className="absolute inset-0 pointer-events-none z-0">
+          <div
+            className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full blur-[140px] opacity-40"
+            style={{ background: "var(--color-primary-accent)" }}
+          />
+          <div
+            className="absolute top-1/3 -right-40 w-[450px] h-[450px] rounded-full blur-[140px] opacity-30"
+            style={{ background: "var(--color-secondary-accent)" }}
+          />
+          <div
+            className="absolute bottom-0 left-1/4 w-[600px] h-[300px] rounded-full blur-[160px] opacity-20"
+            style={{ background: "var(--color-secondary)" }}
+          />
+        </div>
             <div className="max-w-7xl mx-auto">
-                <Link to="/" className="flex items-center gap-4 mb-10">
-                    <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-gradient-to-br from-primary-accent to-secondary-accent shadow-lg">
-                        <Cloud size={26} className="text-white" />
-                    </div>
-                    <span className="text-2xl font-semibold text-white">
-                        Web<span className="text-secondary-accent">Drive</span>
-                    </span>
-                </Link>
+                <div className="py-4">
+                     <BackButton />
+                </div>
 
                 <div className="mb-8">
                     <h1 className="text-2xl font-semibold text-white">

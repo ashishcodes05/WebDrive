@@ -1,5 +1,5 @@
 import { use, useEffect, useState } from "react";
-import { History, Star, Trash2, Search, X, UploadCloud, Share2 } from "lucide-react";
+import { History, Star, Trash2, Search, X, UploadCloud, Share2, FileText, Folder } from "lucide-react";
 import { useGoogleLogin } from "@react-oauth/google";
 import FileRow from "./FileRow";
 import DetailCard from "./DetailCard";
@@ -9,6 +9,8 @@ import toast from "react-hot-toast";
 import { Link, useNavigate, useParams } from "react-router";
 import Loader from "./Loader";
 import Footer from "./Footer";
+import BackButton from "./BackButton";
+import { SiGoogledrive } from "react-icons/si";
 
 const DirectoryView = () => {
   const BASE_URL = "http://localhost:4000";
@@ -199,14 +201,13 @@ const DirectoryView = () => {
             style={{ background: "var(--color-secondary)" }}
           />
         </div>
-
         <div className="relative z-10 w-full max-w-7xl flex items-center justify-between gap-6">
           <div className="flex gap-6">
-            <DetailCard name="Total Files" count={files.length} />
-            <DetailCard name="Total Folders" count={directories.length} />
+            <DetailCard name="Total Files" count={files.length} icon={<FileText size={36} className="text-primary-accent" />} />
+            <DetailCard name="Total Folders" count={directories.length} icon={<Folder size={36} className="text-primary-accent fill-current" />} />
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center gap-3">
             <div
               className="
               relative group
@@ -267,7 +268,7 @@ const DirectoryView = () => {
                   onClick={() => navigate("/recent")}
                   className="group flex items-center gap-2 rounded-xl px-4 py-2.5 bg-card-bg/70 backdrop-blur-xl border border-white/10 text-sm text-text-main shadow-lg shadow-black/30 transition hover:bg-white/10"
                 >
-                  <History size={18} className="text-primary-accent" />
+                  <History size={24} className="text-primary-accent" />
                   Recent
                 </button>
 
@@ -275,7 +276,7 @@ const DirectoryView = () => {
                   onClick={() => navigate("/starred")}
                   className="group flex items-center gap-2 rounded-xl px-4 py-2.5 bg-card-bg/70 backdrop-blur-xl border border-white/10 text-sm text-text-main shadow-lg shadow-black/30 transition hover:bg-white/10"
                 >
-                  <Star size={18} className="text-primary-accent" />
+                  <Star size={24} className="text-primary-accent" />
                   Starred
                 </button>
 
@@ -283,7 +284,7 @@ const DirectoryView = () => {
                   onClick={() => navigate("/bin")}
                   className="group flex items-center gap-2 rounded-xl px-4 py-2.5 bg-card-bg/70 backdrop-blur-xl border border-white/10 text-sm text-text-main shadow-lg shadow-black/30 transition hover:bg-red-500/10 hover:border-red-500/30"
                 >
-                  <Trash2 size={18} className="text-red-400" />
+                  <Trash2 size={24} className="text-red-400" />
                   Bin
                 </button>
               </div>
@@ -301,18 +302,20 @@ const DirectoryView = () => {
                   transition hover:bg-white/10
                   "
                 >
-                  <UploadCloud size={18} className="text-primary-accent" />
+                  <SiGoogledrive size={24} className="text-primary-accent" />
                   Import from Google
                 </button>
                 <Link to="/share/files" className="group flex items-center gap-2 rounded-xl px-4 py-2.5 bg-card-bg/70 backdrop-blur-xl border border-white/10 text-sm text-text-main shadow-lg shadow-black/30 transition hover:bg-white/10">
-                  <Share2 size={18} className="text-primary-accent" />
+                  <Share2 size={24} className="text-primary-accent" />
                   Shared Files
                 </Link>
               </div>
             </div>
           </div>
         </div>
-
+        {dirId && (<div className="w-full flex justify-start px-8">
+          <BackButton label="back" />
+        </div>)}
         <div className="relative z-10 w-full max-w-7xl rounded-2xl border border-white/10 bg-card-bg/80 backdrop-blur-xl shadow-xl shadow-black/40 overflow-hidden">
           <div className="max-h-[calc(100vh-240px)] overflow-y-auto scrollbar-none">
             <table className="w-full border-collapse text-sm">

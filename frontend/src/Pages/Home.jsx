@@ -4,7 +4,7 @@ import WebDriveBackground from "../Components/WebDriveBackground";
 import FeatureSection from "../Components/FeatureSection";
 import AboutSection from "../Components/AboutSection";
 import PricingSection from "../Components/PricingSection";
-import Footer from "../Components/Footer";
+import { Link } from "react-router";
 
 const Home = () => {
   return (
@@ -60,7 +60,7 @@ const Home = () => {
             A smarter way to store and access your files—anytime, anywhere. Your files stay private, encrypted, and always under your control.
           </p>
           <div className="flex items-center gap-4 mt-8">
-            <button className="flex items-center gap-2 bg-primary-accent hover:bg-primary-accent/80 text-white active:scale-95 rounded-lg px-7 h-11">
+            <Link to="/register" className="flex items-center gap-2 bg-primary-accent hover:bg-primary-accent/80 text-white active:scale-95 rounded-lg px-7 h-11">
               Get Free Access
               <svg
                 width="20"
@@ -77,7 +77,7 @@ const Home = () => {
                   stroke-linejoin="round"
                 />
               </svg>
-            </button>
+            </Link>
             <button className="flex items-center gap-2 border border-secondary-400 bg-black/50 font-bold text-secondary-accent hover:border-slate-400 hover:text-slate-300 active:scale-95 transition rounded-lg px-8 h-11">
               Go Premium
               <Crown className="text-yellow-500" size={16} />

@@ -10,6 +10,7 @@ import {
 import { useAppContext } from "../Context/AppContext";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router";
+import BackButton from "../Components/BackButton";
 
 const roles = ["admin", "manager", "user"];
 
@@ -92,7 +93,24 @@ const ManageRoles = () => {
 
   return (
     <div className="min-h-screen bg-[var(--color-background)] px-10 py-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="absolute inset-0 pointer-events-none z-0">
+          <div
+            className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full blur-[140px] opacity-40"
+            style={{ background: "var(--color-primary-accent)" }}
+          />
+          <div
+            className="absolute top-1/3 -right-40 w-[450px] h-[450px] rounded-full blur-[140px] opacity-30"
+            style={{ background: "var(--color-secondary-accent)" }}
+          />
+          <div
+            className="absolute bottom-0 left-1/4 w-[600px] h-[300px] rounded-full blur-[160px] opacity-20"
+            style={{ background: "var(--color-secondary)" }}
+          />
+        </div>
+      <div className="max-w-7xl mx-auto">
+        <div className="py-4">
+          <BackButton />
+        </div>
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-white">
             <UserCog className="inline-block mr-2 mb-1" size={24} />
