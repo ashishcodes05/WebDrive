@@ -4,6 +4,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { useAppContext } from "../Context/AppContext";
+import WebDriveBackground from "../Components/WebDriveBackground";
 
 const Register = () => {
   const BASE_URL = "http://localhost:4000";
@@ -118,12 +119,7 @@ const Register = () => {
 
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#0f0f1a] px-4">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-indigo-600/30 blur-[120px]" />
-        <div className="absolute top-1/3 -right-40 h-[450px] w-[450px] rounded-full bg-purple-600/25 blur-[120px]" />
-        <div className="absolute bottom-[-200px] left-1/3 h-[600px] w-[600px] rounded-full bg-blue-600/20 blur-[140px]" />
-      </div>
-
+      <WebDriveBackground className='fixed inset-0 z-0' />
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.04)_1px,transparent_0)] bg-[size:24px_24px]" />
 
       <form

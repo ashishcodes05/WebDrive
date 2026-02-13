@@ -3,12 +3,14 @@ import { model, Schema } from "mongoose";
 const permissionSchema = new Schema({
     resourceId: {
         type: Schema.Types.ObjectId,
-        required: true
+        required: true,
+        index: true
     },
     resourceType: {
         type: String,
         enum: ["file", "directory"],
-        required: true
+        required: true,
+        index: true
     },
     isRoot: {
         type: Boolean,

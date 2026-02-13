@@ -57,9 +57,9 @@ const HeroNavbar = () => {
           <NavLink to="/" end className={({ isActive }) => `hover:text-primary-accent transition ${isActive ? 'text-secondary-accent font-semibold border-b-2 border-primary-accent' : ''}`}>
             Home
           </NavLink>
-          <NavLink to="/directory" className={({ isActive }) => `hover:text-primary-accent transition ${isActive ? 'text-secondary-accent font-semibold border-b-2 border-primary-accent' : ''}`}>
+          {user && <NavLink to="/directory" className={({ isActive }) => `hover:text-primary-accent transition ${isActive ? 'text-secondary-accent font-semibold border-b-2 border-primary-accent' : ''}`}>
             Files
-          </NavLink>
+          </NavLink>}
           <NavLink to="/pricing" className={({ isActive }) => `hover:text-primary-accent transition ${isActive ? 'text-secondary-accent font-semibold border-b-2 border-primary-accent' : ''}`}>
             Pricing
           </NavLink>
