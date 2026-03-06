@@ -17,12 +17,14 @@ const fileSchema = new Schema({
     parentDirectoryId: {
         type: Schema.Types.ObjectId,
         required: true,
-        ref: "Directory"
+        ref: "Directory",
+        index: true
     },
     userId: {
         type: Schema.Types.ObjectId,
         required: true,
-        ref: "User"
+        ref: "User",
+        index: true
     },
     isStarred: {
         type: Boolean,
