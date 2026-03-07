@@ -1,9 +1,9 @@
 import mongoose, { Types } from "mongoose";
 import User from "../Models/userModel.js";
 import Directory from "../Models/directoryModel.js";
-import Session from "../Models/sessionModel.js";
 import File from "../Models/fileModel.js";
 import { rm } from "fs/promises";
+import redisClient from "../Configs/redis.js"
 
 export const getUser = (req, res) => {
     const user = req.user;
@@ -43,7 +43,6 @@ export const createUser = async (req, res, next) => {
         return res.status(201).json({ success: true, message: "User Registered Successfully" });
     } catch (err) {
         await mongooseSession.abortTransaction(); //rollback
-        console.log(err);
         if (err.code === 121) {
             return res.status(400).json({ success: false, message: "Invalid Inputs" });
         } else if (err.code === 11000) { //Unique Indexing error
@@ -57,9 +56,9 @@ export const createUser = async (req, res, next) => {
 
 export const loginUser = async (req, res, next) => {
     try {
-        const sessionId = req.signedCookies.sid;
-        if(sessionId){
-            await Session.findByIdAndDelete(sessionId);
+        const sid = req.signedCookies.sid;
+        if(sid){
+            await redisClient.del(`session:${sid}`);
         }
         const { email, password } = req.body;
         if (!email || !password) {
@@ -76,14 +75,23 @@ export const loginUser = async (req, res, next) => {
         if (!isValidPassword) {
             return res.status(401).json({ success: false, message: "Invalid Credentials" });
         }
+
         //restricting number of devices into 2
-        const existingSessions = await Session.find({userId: user._id});
-        console.log(existingSessions.length)
-        if(existingSessions.length >= 2){
-            await existingSessions[0].deleteOne();
+        const allSessions = await redisClient.ft.search("session:userIdIdx", `@userId:{${user.id}}`, {
+            RETURN : []
+        });
+        if(allSessions.total >= 2){
+            await redisClient.del(allSessions.documents[0].id);
         }
-        const newSession = await Session.create({ userId: user._id });
-        res.cookie("sid", newSession.id, {
+
+        const sessionId = crypto.randomUUID()
+        const newSession = {
+            id: sessionId,
+            userId : user._id
+        }
+        await redisClient.json.set(`session:${sessionId}`, "$", newSession);
+        await redisClient.expire(`session:${sessionId}`, 7 * 24 * 60 * 60);
+        res.cookie("sid", sessionId, {
             httpOnly: true,
             signed: true,
             maxAge: 24 * 60 * 60 * 1000 * 7// 7 day
@@ -97,7 +105,7 @@ export const loginUser = async (req, res, next) => {
 export const logoutUser = async(req, res) => {
     try {
         const { sid } = req.signedCookies;
-        await Session.deleteOne({_id: sid});
+        await redisClient.del(`session:${sid}`)
         res.clearCookie("sid");
         return res.status(200).json({ success: true, message: "Logout Successful" });
     } catch (err){
@@ -108,7 +116,11 @@ export const logoutUser = async(req, res) => {
 export const logoutAllDevices = async(req, res, next) => {
     try {
         const user = req.user;
-        await Session.deleteMany({userId: user._id});
+        const allSessions = await redisClient.ft.search("session:userIdIdx", `@userId:{${user.id}}`, {
+            RETURN : []
+        });
+        const sessions = allSessions.documents.map((doc) => doc.id);
+        await redisClient.del(sessions);
         return res.status(200).json({ success: true, message: "Logout Successfully from all devices" });
     } catch (err){
         next(err);
@@ -152,7 +164,7 @@ export const deleteUser = async(req, res, next) => {
     try {
         const user = req.user;
         const sessionId = req.signedCookies.sid;
-        await Session.findByIdAndDelete(sessionId);
+        await redisClient.del(`session:${sessionId}`);
         await Directory.deleteMany({userId: user._id});
         const files = await File.find({userId: user._id});
         for(const {id, extension} of files){

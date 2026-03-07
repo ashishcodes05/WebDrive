@@ -1,13 +1,14 @@
 import User from "../Models/userModel.js";
 import Directory from "../Models/directoryModel.js";
-import Session from "../Models/sessionModel.js";
 import File from "../Models/fileModel.js";
 import { rm } from "fs/promises";
+import redisClient from "../Configs/redis.js";
 
 export const getAllUsers = async (req, res, next) => {
     try {
-        const existingSessions = await Session.find().lean()
-        const activeUsers = new Set(existingSessions.map(({ userId }) => userId.toString()));
+        const keys = await redisClient.keys("session:*")
+        const existingSessions = await Promise.all(keys.map((key) => redisClient.json.get(key)))
+        const activeUsers = new Set(existingSessions.map(({ userId }) => userId));
         const users = await User.find().select("_id name email picture role isDisabled").lean();
         const allUsers = users.map((user) => {
             user.isLoggedIn = activeUsers.has(user._id.toString())
@@ -26,7 +27,9 @@ export const forceLogout = async (req, res, next) => {
         if (selectedUser.role === 'admin' && req.user.role !== 'admin') {
             return res.status(403).json({ success: false, message: "Cannot logout an admin user" });
         }
-        await Session.deleteMany({ userId });
+        const existingSessions = await redisClient.ft.search("session:userIdIdx", `@userId:{${userId}}`, { RETURN: [] })
+        const deletingSessions = existingSessions.documents.map((doc) => doc.id);
+        await redisClient.del(deletingSessions);
         res.status(200).json({ success: true, message: "User has been logged out from all devices" });
     } catch (err) {
         next(err);
@@ -43,7 +46,9 @@ export const forceDelete = async (req, res, next) => {
         await File.deleteMany({ userId });
         await Directory.deleteMany({ userId });
         await User.findByIdAndDelete(userId);
-        await Session.deleteMany({ userId });
+        const existingSessions = await redisClient.ft.search("session:userIdIdx", `@userId:{${userId}}`, { RETURN: [] })
+        const deletingSessions = existingSessions.documents.map((doc) => doc.id);
+        await redisClient.del(deletingSessions);
         return res.status(200).json({ success: true, message: "User has been deleted successfully" });
     } catch (err) {
         next(err);
@@ -58,7 +63,9 @@ export const toggleStatus = async (req, res, next) => {
         }
         const selectedUser = await User.findById(userId);
         if (selectedUser.isDisabled === false) {
-            await Session.deleteMany({ userId });
+            const existingSessions = await redisClient.ft.search("session:userIdIdx", `@userId:{${userId}}`, { RETURN: [] })
+            const deletingSessions = existingSessions.documents.map((doc) => doc.id);
+            await redisClient.del(deletingSessions);
         }
         selectedUser.isDisabled = !selectedUser.isDisabled;
         await selectedUser.save();
@@ -113,15 +120,11 @@ export const changeRole = async (req, res, next) => {
 export const getDirectoryContents = async (req, res, next) => {
     try {
         const { userId } = req.params;
-        console.log(userId)
         const user = await User.findById(userId).select("rootDirectory").lean();
-        console.log(user)
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
-        console.log(req.params.dirId || user.rootDirectory.toString())
         const parentDirectoryId = req.params?.dirId ? req.params?.dirId : user.rootDirectory.toString();
-        console.log(parentDirectoryId)
         const files = await File.find({ parentDirectoryId, userId }).populate("userId", "email picture _id").lean();
         const directories = await Directory.find({ parentDirectoryId, userId }).populate("userId", 'email picture _id').lean();
         return res.status(200).json({ success: true, files, directories });

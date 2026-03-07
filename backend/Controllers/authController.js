@@ -1,13 +1,12 @@
 import mongoose, { Types } from "mongoose";
 import Directory from "../Models/directoryModel.js";
 import Otp from "../Models/otpModel.js";
-import Session from "../Models/sessionModel.js";
 import User from "../Models/userModel.js";
 import { downloadAndSaveFile, driveAuthClient, fetchUserFromGoogle } from "../Services/googleAuthService.js";
 import { sendEmail } from "../Services/sendEmailService.js";
-import e from "express";
 import { fetchUserFromGithub } from "../Services/githubAuthService.js";
 import File from "../Models/fileModel.js";
+import redisClient from "../Configs/redis.js";
 
 export const sendOtp = async (req, res) => {
     const { email } = req.body;
@@ -31,7 +30,7 @@ export const googleLogin = async (req, res, next) => {
     const { code } = req.body;
     const { name, email, picture } = await fetchUserFromGoogle(code);
     if (sessionId) {
-        await Session.findByIdAndDelete(sessionId);
+        await redisClient.del(`session:${sessionId}`);
     }
     const user = await User.findOne({ email });
     if(user && user.isDisabled){
@@ -42,12 +41,23 @@ export const googleLogin = async (req, res, next) => {
             user.picture = picture;
             await user.save();
         }
-        const existingSessions = await Session.find({ userId: user._id });
-        if (existingSessions.length >= 2) {
-            await existingSessions[0].deleteOne();
+
+         //restricting number of devices into 2
+        const allSessions = await redisClient.ft.search("session:userIdIdx", `@userId:{${user.id}}`, {
+            RETURN : []
+        });
+        if(allSessions.total >= 2){
+            await redisClient.del(allSessions.documents[0].id);
         }
-        const newSession = await Session.create({ userId: user._id });
-        res.cookie("sid", newSession.id, {
+
+        const sessionId = crypto.randomUUID();
+        const newSession = {
+            id: sessionId,
+            userId : user._id
+        }
+        await redisClient.json.set(`session:${sessionId}`, "$", newSession)
+        await redisClient.expire(`session:${sessionId}`, 24 * 60 * 60 * 7)
+        res.cookie("sid", sessionId, {
             httpOnly: true,
             signed: true,
             maxAge: 24 * 60 * 60 * 1000 * 7
@@ -74,7 +84,14 @@ export const googleLogin = async (req, res, next) => {
             userId,
         }, { mongooseSession })
         await mongooseSession.commitTransaction();
-        const newSession = await Session.create({ userId });
+
+        const sessionId = crypto.randomUUID();
+        const newSession = {
+            id: sessionId,
+            userId
+        }
+        await redisClient.json.set(`session:${sessionId}`, "$", newSession)
+        await redisClient.expire(`session:${sessionId}`, 24 * 60 * 60 * 7)
         res.cookie("sid", newSession.id, {
             httpOnly: true,
             signed: true,
@@ -106,11 +123,11 @@ export const githubRedirectURI = async (req, res) => {
 }
 
 export const githubLogin = async (req, res, next) => {
-    const sessionId = req.signedCookies.sid;
+    const sid = req.signedCookies.sid;
     const { code } = req.query;
     const { name, email, picture } = await fetchUserFromGithub(code);
-    if (sessionId) {
-        await Session.findByIdAndDelete(sessionId);
+    if (sid) {
+        await redisClient.del(`session:${sid}`)
     }
     const user = await User.findOne({ email });
     if(user && user.isDisabled){
@@ -121,11 +138,22 @@ export const githubLogin = async (req, res, next) => {
             user.picture = picture;
             await user.save();
         }
-        const existingSessions = await Session.find({ userId: user._id });
-        if (existingSessions.length >= 2) {
-            await existingSessions[0].deleteOne();
+
+         //restricting number of devices into 2
+        const allSessions = await redisClient.ft.search("session:userIdIdx", `@userId:{${user.id}}`, {
+            RETURN : []
+        });
+        if(allSessions.total >= 2){
+            await redisClient.del(allSessions.documents[0].id);
         }
-        const newSession = await Session.create({ userId: user._id });
+        
+        const sessionId = crypto.randomUUID();
+        const newSession = {
+            id: sessionId,
+            userId : user._id
+        }
+        await redisClient.json.set(`session:${sessionId}`, "$", newSession)
+        await redisClient.expire(`session:${sessionId}`, 24 * 60 * 60 * 7)
         res.cookie("sid", newSession.id, {
             httpOnly: true,
             signed: true,
@@ -153,7 +181,13 @@ export const githubLogin = async (req, res, next) => {
             userId,
         }, { mongooseSession })
         await mongooseSession.commitTransaction();
-        const newSession = await Session.create({ userId });
+        const sessionId = crypto.randomUUID();
+        const newSession = {
+            id: sessionId,
+            userId : user._id
+        }
+        await redisClient.json.set(`session:${sessionId}`, "$", newSession)
+        await redisClient.expire(`session:${sessionId}`, 24 * 60 * 60 * 7)
         res.cookie("sid", newSession.id, {
             httpOnly: true,
             signed: true,
@@ -177,7 +211,6 @@ export const importFromGoogleDrive = async (req, res, next) => {
     const { files, accessToken } = req.body;
     const { dirId } = req.params;
     const user = req.user;
-    console.log("DirectoryId:", dirId);
     if (!files || !Array.isArray(files) || files.length === 0) {
         return res.status(400).json({
             success: false,

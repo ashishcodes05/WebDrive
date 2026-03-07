@@ -106,7 +106,6 @@ export const getSharedDirectoryFiles = async(req, res, next) => {
     try {
         const { dirId: directoryId } = req.params;
         const hasPermission = await Permission.findOne({ resourceId: directoryId, resourceType: "directory", userId: req.user._id }).select("_id").lean();
-        console.log(hasPermission)
         if(!hasPermission){
             return res.status(403).json({ success: false, message: "Forbidden: You don't have the required permission"});
         }
@@ -150,16 +149,13 @@ export const getSharedFilesAndDirectories = async(req, res, next) => {
 export const getSharedUsers = async(req, res, next) => {
     try {
         const { resources } = req.body;
-        console.log(resources)
         const sharedUsers = {};
         const resourceIds = resources.map((resource) => resource.resourceId);
-        console.log(resourceIds)
         const hasAccess = await Permission.findOne({ resourceId: { $in : resourceIds }, userId: req.user._id });
         if(!hasAccess){
             return res.status(403).json({ success: false, message: "No records found"});
         }
         const resourcePermissions = await Permission.find({ resourceId: { $in: resourceIds }}).populate("userId", "email picture").lean();
-        console.log(resourcePermissions)
         for(const resourcePermission of resourcePermissions){
             const key = resourcePermission.resourceId.toString();
             if(!sharedUsers[key]){
@@ -183,7 +179,6 @@ export const viewFile = async(req, res, next) => {
         const user = req.user;
         const { fileId } = req.params;
         const { action } = req.query;
-        console.log("fileId", fileId)
         const filePermission = await Permission.findOne({ resourceId: fileId, userId: user._id, resourceType: "file" }).lean();
         if(!filePermission){
             return res.status(404).json({ success: false, message: "File Not Found"});
@@ -195,7 +190,6 @@ export const viewFile = async(req, res, next) => {
         return res.sendFile(`${process.cwd()}/Storage/${fileId}${fileData.extension}`, (err) => {
             if (res.headersSent) return;
             if (err) {
-                console.log(err)
                 res.status(500).json({
                     success: false,
                     message: "Internal Server Error"
@@ -205,7 +199,6 @@ export const viewFile = async(req, res, next) => {
             }
         })
     } catch (err){
-        console.log(err)
         next(err);
     }
 }

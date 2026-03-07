@@ -1,5 +1,6 @@
 import Session from "../Models/sessionModel.js";
 import User from "../Models/userModel.js";
+import redisClient from "../Configs/redis.js";
 
 export const checkAuth = async(req, res, next) => {
   const sessionId = req.signedCookies.sid;
@@ -11,10 +12,13 @@ export const checkAuth = async(req, res, next) => {
     });
   }
 
-  const session = await Session.findById(sessionId);
-  if(!session){
+  const result = await redisClient.json.get(`session:${sessionId}`, {
+    path: "$"
+  })
+  if(!result || result.length === 0){
     return res.status(401).json({success: false, message: "Not Authorised"});
   }
+  const session = result[0];
   const user = await User.findOne({_id: session.userId, isDisabled: false});
   if (!user) {
     return res.status(401).json({
@@ -39,7 +43,6 @@ export const checkShareAuth = async(req, res, next) => {
     return res.redirect(`http://localhost:5173/login?redirect=${redirectUrl}`);
   }
   const user = await User.findOne({_id: session.userId, isDisabled: false});
-  console.log(user.name)
   if (!user) {
     return res.redirect(`http://localhost:5173/login?redirect=${redirectUrl}`);
   }
