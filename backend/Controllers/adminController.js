@@ -29,7 +29,7 @@ export const forceLogout = async (req, res, next) => {
         }
         const existingSessions = await redisClient.ft.search("session:userIdIdx", `@userId:{${userId}}`, { RETURN: [] })
         const deletingSessions = existingSessions.documents.map((doc) => doc.id);
-        await redisClient.del(deletingSessions);
+        if(deletingSessions.length > 0) await redisClient.del(deletingSessions);
         res.status(200).json({ success: true, message: "User has been logged out from all devices" });
     } catch (err) {
         next(err);
@@ -48,7 +48,7 @@ export const forceDelete = async (req, res, next) => {
         await User.findByIdAndDelete(userId);
         const existingSessions = await redisClient.ft.search("session:userIdIdx", `@userId:{${userId}}`, { RETURN: [] })
         const deletingSessions = existingSessions.documents.map((doc) => doc.id);
-        await redisClient.del(deletingSessions);
+        if(deletingSessions.length > 0) await redisClient.del(deletingSessions);
         return res.status(200).json({ success: true, message: "User has been deleted successfully" });
     } catch (err) {
         next(err);
@@ -65,7 +65,7 @@ export const toggleStatus = async (req, res, next) => {
         if (selectedUser.isDisabled === false) {
             const existingSessions = await redisClient.ft.search("session:userIdIdx", `@userId:{${userId}}`, { RETURN: [] })
             const deletingSessions = existingSessions.documents.map((doc) => doc.id);
-            await redisClient.del(deletingSessions);
+            if(deletingSessions.length > 0) await redisClient.del(deletingSessions);
         }
         selectedUser.isDisabled = !selectedUser.isDisabled;
         await selectedUser.save();

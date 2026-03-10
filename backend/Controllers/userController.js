@@ -120,7 +120,7 @@ export const logoutAllDevices = async(req, res, next) => {
             RETURN : []
         });
         const sessions = allSessions.documents.map((doc) => doc.id);
-        await redisClient.del(sessions);
+        if(sessions.length > 0) await redisClient.del(sessions);
         return res.status(200).json({ success: true, message: "Logout Successfully from all devices" });
     } catch (err){
         next(err);

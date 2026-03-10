@@ -23,7 +23,6 @@ export default function ContextMenu({
   isDirectory,
   isOwner=false,
   setShareModalOpen,
-  setMenuPos,
   role,
   toLinkPath
 }) {
@@ -75,7 +74,7 @@ export default function ContextMenu({
 
       {!isViewer && <button onClick={() => {
         setShareModalOpen(true);
-        setMenuPos(null);
+        onClose();
       }} className={itemClass}>
         <Share2 className="w-4 h-4 text-text-secondary" />
         Share

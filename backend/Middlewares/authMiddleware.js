@@ -38,7 +38,7 @@ export const checkShareAuth = async(req, res, next) => {
     return res.redirect(`http://localhost:5173/login?redirect=${redirectUrl}`);
   }
 
-  const session = await Session.findById(sessionId);
+  const session = await redisClient.json.get(`session:${sessionId}`);
   if(!session){
     return res.redirect(`http://localhost:5173/login?redirect=${redirectUrl}`);
   }
