@@ -1,48 +1,38 @@
-import { rm } from "fs/promises";
-import path from "path";
-import File from "../Models/fileModel.js";
-import Directory from "../Models/directoryModel.js";
-import Permission from "../Models/permissionModel.js";
+import fileService from "../Services/fileService.js";
 
 export const getFileById = async(req, res) => {
-  const user = req.user;
-  const { id } = req.params;
-  const fileData = await File.findOne({_id: id, userId: user._id}).select("name extension").lean();
-  if (!fileData) {
-    return res.status(404).json({
-      success: false,
-      message: "File Not Found"
-    })
-  }
-  const { action } = req.query;
-  if (action && action === "download") {
-    // res.set("Content-Disposition", `attachment; filename=${fileData.filename}`);
-    return res.download(`${process.cwd()}/Storage/${id}${fileData.extension}`, fileData.name);
-  }
-  res.sendFile(`${process.cwd()}/Storage/${id}${fileData.extension}`, (err) => {
-    if (res.headersSent) return;
-    if (err) {
-      res.status(500).json({
-        success: false,
-        message: "Internal Server Error"
-      });
-    } else {
-      res.status(200).end();
+  try {
+    const user = req.user;
+    const { id } = req.params;
+    const result = await fileService.getFileMetaDataAndPath(id, user._id);
+    if(!result){
+      return res.status(404).json({ success: false, message: "File Not Found" });
     }
-  });
+    const { fileData, filePath } = result;
+    const { action } = req.query;
+    if (action && action === "download") {
+      return res.download(filePath, fileData.name);
+    }
+    res.sendFile(filePath, (err) => {
+      if (res.headersSent) return;
+      if (err) {
+        res.status(500).json({
+          success: false,
+          message: "Internal Server Error"
+        });
+      } else {
+        res.status(200).end();
+      }
+    });
+  } catch(err){
+    next(err);
+  }
 }
 
 export const uploadFiles = async (req, res, next) => {
   try {
     const user = req.user;
     const parDirId = req.params.parDirId || user.rootDirectory.toString();
-    const directoryData = await Directory.findOne({_id: parDirId, userId: user._id});
-    if (!directoryData) {
-      return res.status(404).json({
-        success: false,
-        message: "Parent Directory Not Found"
-      });
-    }
     const uploadedFiles = req.files?.uploadedFiles;
     if (!uploadedFiles || uploadedFiles.length === 0) {
       return res.status(400).json({
@@ -50,43 +40,12 @@ export const uploadFiles = async (req, res, next) => {
         message: "No files uploaded",
       });
     }
-    const filesData = [];
-    const permissionData = [];
-    uploadedFiles.forEach((file) => {
-      const { _id } = file;
-      const { originalname: name } = file;
-      const extension = path.extname(file.originalname);
-      const { size } = file;
-      filesData.push({
-        _id,
-        parentDirectoryId : parDirId,
-        userId: user._id,
-        name,
-        extension,
-        size,
-      })
-      permissionData.push({
-        resourceId: _id,
-        resourceType: "file",
-        userId: user._id,
-        role: "owner"
-      })
-    })
-    const sharedUsers = await Permission.find({ resourceId: parDirId, role: {$ne: "owner"}}).select("userId role").lean();
-    for(const u of sharedUsers){
-      for(const { _id } of filesData){
-        permissionData.push({
-          resourceId: _id,
-          resourceType: "file",
-          userId: u.userId,
-          role: u.role
-        })
-      }
-    }
-    await File.insertMany(filesData);
-    await Permission.insertMany(permissionData);
+    await fileService.processUploads(uploadedFiles, user._id, parDirId);
     return res.status(201).json({ success: true, message: "Files Uploaded Successfully" });
   } catch (err) {
+    if(err.message === "PARENT_DIRECTORY_NOT_FOUND"){
+      return res.status(404).json({ success: false, message: "Parent Directory Not Found" });
+    }
     next(err);
   }
 }
@@ -102,9 +61,9 @@ export const renameFileById = async (req, res, next) => {
     });
   }
   try {
-    const file = await File.findOneAndUpdate({_id: id, userId: user._id}, {$set: {name: newFilename}}, {runValidators: true});
-    if(!file){
-      return res.status(404).json({ success: false, message: "File Not Found" });
+    const fileData = await fileService.renameFile(id, user._id, newFilename);
+    if(!fileData){
+      return res.status(404).json({ success: false, message: "File not found" });
     }
     return res.status(200).json({ success: true, message: "Renamed Successfully" });
   } catch (err) {
@@ -116,11 +75,10 @@ export const deleteFileById = async (req, res, next) => {
   const user = req.user;
   const { id } = req.params;
   try {
-    const fileData = await File.findOneAndDelete({_id: id, userId: user._id}).select("extension").lean();
+    const fileData = await fileService.deleteFile(id, user._id);
     if(!fileData){
       return res.status(404).json({ success: false, message: "File not found" });
     }
-    await rm(`./Storage/${id}${fileData.extension}`);
     res.status(200).json({ success: true, message: "Deleted Successfully" });
   } catch (err) {
     next(err);
