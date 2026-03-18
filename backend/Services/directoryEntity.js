@@ -1,27 +1,25 @@
-import path from "path"
+import { Types } from "mongoose";
 
-class FileEntity {
-    constructor(rawFile, userId, parentDirectoryId) {
-        this._id = rawFile._id;
-        this.name = rawFile.originalname;
-        this.extension = path.extname(rawFile.originalname);
-        this.size = rawFile.size;
-        this.userId = userId;
+class DirectoryEntity {
+    constructor(name, parentDirectoryId, userId) {
+        this._id = new Types.ObjectId();
+        this.name = name;
         this.parentDirectoryId = parentDirectoryId;
+        this.userId = userId;
     }
 
     generatePermissions(sharedUsers) {
         const permissions = [];
         permissions.push({
             resourceId: this._id,
-            resourceType: "file",
+            resourceType: "directory",
             userId: this.userId,
             role: "owner"
         })
         for(const u of sharedUsers){
             permissions.push({
                 resourceId: this._id,
-                resourceType: "file",
+                resourceType: "directory",
                 userId: u.userId,
                 role: u.role
             })
@@ -29,16 +27,14 @@ class FileEntity {
         return permissions;
     }
 
-    toDatabaseObject() {
+    toDatabaseObject(){
         return {
             _id: this._id,
             name: this.name,
-            extension: this.extension,
-            size: this.size,
+            parentDirectoryId: this.parentDirectoryId,
             userId: this.userId,
-            parentDirectoryId: this.parentDirectoryId
-        }
+        };
     }
 }
 
-export default FileEntity; 
+export default DirectoryEntity;

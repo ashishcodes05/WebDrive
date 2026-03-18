@@ -22,9 +22,9 @@ class FileService {
         const permissionData = [];
         uploadedFiles.forEach((file) => {
             const fileEntity = new FileEntity(file, userId, parentDirectoryId);
-            fileEntity.generatePermissions(sharedUsers);
+            const permissions = fileEntity.generatePermissions(sharedUsers);
             filesData.push(fileEntity.toDatabaseObject());
-            permissionData.push(...fileEntity.permissions);
+            permissionData.push(...permissions);
         });
         await File.insertMany(filesData);
         await Permission.insertMany(permissionData);
