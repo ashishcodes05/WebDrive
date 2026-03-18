@@ -1,105 +1,45 @@
-import mongoose, { Types } from "mongoose";
-import Directory from "../Models/directoryModel.js";
-import Otp from "../Models/otpModel.js";
-import User from "../Models/userModel.js";
 import { downloadAndSaveFile, driveAuthClient, fetchUserFromGoogle } from "../Services/googleAuthService.js";
-import { sendEmail } from "../Services/sendEmailService.js";
 import { fetchUserFromGithub } from "../Services/githubAuthService.js";
 import File from "../Models/fileModel.js";
-import redisClient from "../Configs/redis.js";
+import otpManager from "../Services/otpManager.js";
+import sessionManager from "../Services/sessionManager.js";
+import userService from "../Services/userService.js";
 
 export const sendOtp = async (req, res) => {
     const { email } = req.body;
-    const response = await sendEmail(email);
+    const response = await otpManager.sendVerificationCode(email);
     return res.status(201).json(response);
 }
 
-export const verifyOtp = async (req, res) => {
-    const { email, enteredOtp } = req.body;
-    const storedOtp = await Otp.findOne({ email });
-    const isValid = await storedOtp.compareOtp(enteredOtp);
-    if (isValid) {
-        await storedOtp.deleteOne();
-        return res.status(200).json({ success: true, message: "Email verified successfully" })
+export const verifyOtp = async (req, res, next) => {
+    try {
+        const { email, enteredOtp } = req.body;
+        const isVerified = await otpManager.verifyOtp(enteredOtp, email);
+        if (!isVerified) {
+            return res.status(401).json({ success: false, message: "Invalid OTP" });
+        }
+        return res.status(200).json({ success: true, message: "OTP verified successfully" });
+    } catch (err) {
+        next(err);
     }
-    return res.status(401).json({ success: false, message: "Invalid OTP" });
 }
 
 export const googleLogin = async (req, res, next) => {
-    const sessionId = req.signedCookies.sid;
-    const { code } = req.body;
-    const { name, email, picture } = await fetchUserFromGoogle(code);
-    if (sessionId) {
-        await redisClient.del(`session:${sessionId}`);
-    }
-    const user = await User.findOne({ email });
-    if(user && user.isDisabled){
-        return res.status(401).json({ success: false, message: "Your Account is disabled. Please contact the administrator." });
-    }
-    if (user) {
-        if (!user.picture) {
-            user.picture = picture;
-            await user.save();
-        }
-
-         //restricting number of devices into 2
-        const allSessions = await redisClient.ft.search("session:userIdIdx", `@userId:{${user.id}}`, {
-            RETURN : []
-        });
-        if(allSessions.total >= 2){
-            await redisClient.del(allSessions.documents[0].id);
-        }
-
-        const sessionId = crypto.randomUUID();
-        const newSession = {
-            id: sessionId,
-            userId : user._id
-        }
-        await redisClient.json.set(`session:${sessionId}`, "$", newSession)
-        await redisClient.expire(`session:${sessionId}`, 24 * 60 * 60 * 7)
-        res.cookie("sid", sessionId, {
-            httpOnly: true,
-            signed: true,
-            maxAge: 24 * 60 * 60 * 1000 * 7
-        })
-        return res.status(200).json({ success: true, message: "User Logged in successfully" })
-    }
-    const mongooseSession = await mongoose.startSession();
     try {
-        mongooseSession.startTransaction();
-        const userId = new Types.ObjectId();
-        const directoryId = new Types.ObjectId();
-        await User.insertOne({
-            _id: userId,
-            name,
-            email,
-            picture,
-            hasPassword: false,
-            rootDirectory: directoryId
-        }, { mongooseSession })
-        await Directory.insertOne({
-            _id: directoryId,
-            name: `root-${email}`,
-            parentDirectoryId: null,
-            userId,
-        }, { mongooseSession })
-        await mongooseSession.commitTransaction();
-
-        const sessionId = crypto.randomUUID();
-        const newSession = {
-            id: sessionId,
-            userId
+        const sessionId = req.signedCookies.sid;
+        const { code } = req.body;
+        const { name, email, picture } = await fetchUserFromGoogle(code);
+        if (sessionId) {
+            await sessionManager.deleteSession(sessionId);
         }
-        await redisClient.json.set(`session:${sessionId}`, "$", newSession)
-        await redisClient.expire(`session:${sessionId}`, 24 * 60 * 60 * 7)
-        res.cookie("sid", newSession.id, {
+        const newSessionId = await userService.handleOAuthLogin(name, email, picture);
+        res.cookie("sid", newSessionId, {
             httpOnly: true,
             signed: true,
             maxAge: 24 * 60 * 60 * 1000 * 7
         })
         return res.status(201).json({ success: true, message: "User LoggedIn Successfully" });
     } catch (err) {
-        await mongooseSession.abortTransaction();
         if (err.code === 121) {
             return res.status(400).json({ success: false, message: "Invalid Inputs" });
         } else if (err.code === 11000) { //Unique Indexing error
@@ -123,79 +63,21 @@ export const githubRedirectURI = async (req, res) => {
 }
 
 export const githubLogin = async (req, res, next) => {
-    const sid = req.signedCookies.sid;
-    const { code } = req.query;
-    const { name, email, picture } = await fetchUserFromGithub(code);
-    if (sid) {
-        await redisClient.del(`session:${sid}`)
-    }
-    const user = await User.findOne({ email });
-    if(user && user.isDisabled){
-        return res.status(401).json({ success: false, message: "Your Account is disabled. Please contact the administrator." });
-    }
-    if (user) {
-        if (!user.picture) {
-            user.picture = picture;
-            await user.save();
-        }
-
-         //restricting number of devices into 2
-        const allSessions = await redisClient.ft.search("session:userIdIdx", `@userId:{${user.id}}`, {
-            RETURN : []
-        });
-        if(allSessions.total >= 2){
-            await redisClient.del(allSessions.documents[0].id);
-        }
-        
-        const sessionId = crypto.randomUUID();
-        const newSession = {
-            id: sessionId,
-            userId : user._id
-        }
-        await redisClient.json.set(`session:${sessionId}`, "$", newSession)
-        await redisClient.expire(`session:${sessionId}`, 24 * 60 * 60 * 7)
-        res.cookie("sid", newSession.id, {
-            httpOnly: true,
-            signed: true,
-            maxAge: 24 * 60 * 60 * 1000 * 7
-        })
-        return res.redirect("http://localhost:5173/");
-    }
-    const mongooseSession = await mongoose.startSession();
     try {
-        mongooseSession.startTransaction();
-        const userId = new Types.ObjectId();
-        const directoryId = new Types.ObjectId();
-        await User.insertOne({
-            _id: userId,
-            name,
-            email,
-            picture,
-            hasPassword: false,
-            rootDirectory: directoryId
-        }, { mongooseSession })
-        await Directory.insertOne({
-            _id: directoryId,
-            name: `root-${email}`,
-            parentDirectoryId: null,
-            userId,
-        }, { mongooseSession })
-        await mongooseSession.commitTransaction();
-        const sessionId = crypto.randomUUID();
-        const newSession = {
-            id: sessionId,
-            userId : user._id
+        const sid = req.signedCookies.sid;
+        const { code } = req.query;
+        if (sid) {
+            await sessionManager.deleteSession(sid);
         }
-        await redisClient.json.set(`session:${sessionId}`, "$", newSession)
-        await redisClient.expire(`session:${sessionId}`, 24 * 60 * 60 * 7)
-        res.cookie("sid", newSession.id, {
+        const { name, email, picture } = await fetchUserFromGithub(code);
+        const newSessionId = await userService.handleOAuthLogin(name, email, picture);
+        res.cookie("sid", newSessionId, {
             httpOnly: true,
             signed: true,
             maxAge: 24 * 60 * 60 * 1000 * 7
         })
         return res.redirect("http://localhost:5173/");
     } catch (err) {
-        await mongooseSession.abortTransaction();
         if (err.code === 121) {
             return res.status(400).json({ success: false, message: "Invalid Inputs" });
         } else if (err.code === 11000) { //Unique Indexing error

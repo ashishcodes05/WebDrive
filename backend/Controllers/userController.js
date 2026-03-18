@@ -1,9 +1,6 @@
-import mongoose, { Types } from "mongoose";
 import User from "../Models/userModel.js";
-import Directory from "../Models/directoryModel.js";
-import File from "../Models/fileModel.js";
-import { rm } from "fs/promises";
-import redisClient from "../Configs/redis.js"
+import userService from "../Services/userService.js";
+import sessionManager from "../Services/sessionManager.js";
 
 export const getUser = (req, res) => {
     const user = req.user;
@@ -17,32 +14,14 @@ export const getUser = (req, res) => {
 };
 
 export const createUser = async (req, res, next) => {
-    const mongooseSession = await mongoose.startSession();
     try {
         const { name, email, password } = req.body;
         if (!name || !email || !password) {
             return res.status(400).json({ success: false, message: "All fields are required" });
         }
-        mongooseSession.startTransaction();
-        const userId = new Types.ObjectId();
-        const directoryId = new Types.ObjectId();
-        await User.insertOne({
-            _id: userId,
-            name,
-            email,
-            password,
-            rootDirectory: directoryId
-        }, {mongooseSession})
-        await Directory.insertOne({
-            _id: directoryId,
-            name: `root-${email}`,
-            parentDirectoryId: null,
-            userId,
-        }, {mongooseSession})
-        await mongooseSession.commitTransaction();
+        await userService.registerUser(name, email, password);
         return res.status(201).json({ success: true, message: "User Registered Successfully" });
     } catch (err) {
-        await mongooseSession.abortTransaction(); //rollback
         if (err.code === 121) {
             return res.status(400).json({ success: false, message: "Invalid Inputs" });
         } else if (err.code === 11000) { //Unique Indexing error
@@ -58,39 +37,18 @@ export const loginUser = async (req, res, next) => {
     try {
         const sid = req.signedCookies.sid;
         if(sid){
-            await redisClient.del(`session:${sid}`);
+            await sessionManager.deleteSession(sid);
         }
         const { email, password } = req.body;
         if (!email || !password) {
             return res.status(400).json({ success: false, message: "All fields are required" });
         }
-        const user = await User.findOne({ email }).select("_id password isDisabled");
-        if (!user) {
-            return res.status(401).json({ success: false, message: "Invalid credentials" });
+        const userId = await userService.validateLogin(email, password)
+        if(!userId){
+            return res.status(401).json({ success: false, message: "Invalid Credentials"})
         }
-        if(user.isDisabled){
-            return res.status(401).json({ success: false, message: "Your Account is disabled. Please contact the administrator." });
-        }
-        const isValidPassword = await user.comparePassword(password);
-        if (!isValidPassword) {
-            return res.status(401).json({ success: false, message: "Invalid Credentials" });
-        }
-
-        //restricting number of devices into 2
-        const allSessions = await redisClient.ft.search("session:userIdIdx", `@userId:{${user.id}}`, {
-            RETURN : []
-        });
-        if(allSessions.total >= 2){
-            await redisClient.del(allSessions.documents[0].id);
-        }
-
-        const sessionId = crypto.randomUUID()
-        const newSession = {
-            id: sessionId,
-            userId : user._id
-        }
-        await redisClient.json.set(`session:${sessionId}`, "$", newSession);
-        await redisClient.expire(`session:${sessionId}`, 7 * 24 * 60 * 60);
+        await sessionManager.enforceDeviceLimit(userId, 2);
+        const sessionId = await sessionManager.createSession(userId);
         res.cookie("sid", sessionId, {
             httpOnly: true,
             signed: true,
@@ -105,7 +63,7 @@ export const loginUser = async (req, res, next) => {
 export const logoutUser = async(req, res) => {
     try {
         const { sid } = req.signedCookies;
-        await redisClient.del(`session:${sid}`)
+        await sessionManager.deleteSession(sid);
         res.clearCookie("sid");
         return res.status(200).json({ success: true, message: "Logout Successful" });
     } catch (err){
@@ -116,11 +74,7 @@ export const logoutUser = async(req, res) => {
 export const logoutAllDevices = async(req, res, next) => {
     try {
         const user = req.user;
-        const allSessions = await redisClient.ft.search("session:userIdIdx", `@userId:{${user.id}}`, {
-            RETURN : []
-        });
-        const sessions = allSessions.documents.map((doc) => doc.id);
-        if(sessions.length > 0) await redisClient.del(sessions);
+        await sessionManager.deleteAllSessions(user._id);
         return res.status(200).json({ success: true, message: "Logout Successfully from all devices" });
     } catch (err){
         next(err);
@@ -141,19 +95,8 @@ export const updateUserProfile = async(req, res, next) => {
 export const updatePassword = async(req, res, next) => {
     try {
         const user = req.user;
-        if(!user.hasPassword){
-            const { newPassword } = req.body;
-            user.password = newPassword;
-            await user.save();
-            return res.status(200).json({success: true, message: "Password has been updated Successfully"});
-        }
         const { newPassword, currentPassword } = req.body;
-        const isValid = await user.comparePassword(currentPassword);
-        if(!isValid){
-            return res.status(401).json({success: false, message: "Current Password is incorrect"});
-        }
-        user.password = newPassword;
-        await user.save();
+        await userService.updatePassword(user._id, { currentPassword, newPassword });
         return res.status(200).json({success: true, message: "Password has been updated Successfully"});
     } catch(err){
         next(err)
@@ -164,14 +107,8 @@ export const deleteUser = async(req, res, next) => {
     try {
         const user = req.user;
         const sessionId = req.signedCookies.sid;
-        await redisClient.del(`session:${sessionId}`);
-        await Directory.deleteMany({userId: user._id});
-        const files = await File.find({userId: user._id});
-        for(const {id, extension} of files){
-            await rm(`./Storage/${id}${extension}`);
-        }
-        await File.deleteMany({userId: user._id})
-        await user.deleteOne();
+        await sessionManager.deleteSession(sessionId);
+        await userService.deleteCompleteAccount(user._id);
         return res.status(200).json({success: true, message: "User Deleted Successfully"});
     } catch (err){
         next(err);

@@ -1,4 +1,4 @@
-import redisClient from "../Configs/redis";
+import redisClient from "../Configs/redis.js";
 
 class SessionManager {
     async createSession(userId){
