@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import redisClient from "../Configs/redis.js";
 
 class SessionManager {
@@ -26,6 +27,12 @@ class SessionManager {
         if(allSessions.total >= limit){
             await redisClient.del(allSessions.documents[0].id);
         }
+    }
+
+    async getAllActiveSessions(){
+        const keys = await redisClient.keys("session:*")
+        const existingSessions = await Promise.all(keys.map((key) => redisClient.json.get(key)));
+        return existingSessions;
     }
 
     async deleteAllSessions(userId){

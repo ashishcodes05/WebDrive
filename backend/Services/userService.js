@@ -1,5 +1,7 @@
+import mongoose, { Types } from "mongoose";
 import Directory from "../Models/directoryModel.js";
 import File from "../Models/fileModel.js";
+import Permission from "../Models/permissionModel.js";
 import User from "../Models/userModel.js";
 import sessionManager from "./sessionManager.js";
 import storageService from "./storageService.js";
@@ -65,11 +67,16 @@ class UserService {
             mongooseSession.startTransaction();
             await Directory.deleteMany({ userId }, {mongooseSession});
             const files = await File.find({ userId }).select("extension _id").lean();
+            const fileIds = [];
             for(const { _id, extension } of files){
+                fileIds.push(_id);
                 await storageService.deletePhysicalFile(_id.toString(), extension);
             }
             await File.deleteMany({ userId }, {mongooseSession});
             await User.deleteOne({ _id: userId }, {mongooseSession});
+            await Permission.deleteMany({ userId }, {mongooseSession});
+            await Permission.deleteMany({ resourceId: { $in: fileIds } }, {mongooseSession});
+            await sessionManager.deleteAllSessions(userId);
             await mongooseSession.commitTransaction();
         } catch (err) {
             await mongooseSession.abortTransaction();

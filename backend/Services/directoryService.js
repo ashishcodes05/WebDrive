@@ -10,8 +10,8 @@ class DirectoryService {
         if (!directoryData) {
             throw new Error("DIRECTORY_NOT_FOUND");
         }
-        const files = await File.find({ parentDirectoryId: directoryId }).populate("userId", "email picture").lean();
-        const directories = await Directory.find({ parentDirectoryId: directoryId }).populate("userId", "email picture").lean();
+        const files = await File.find({ parentDirectoryId: directoryId, userId }).populate("userId", "email picture _id").lean();
+        const directories = await Directory.find({ parentDirectoryId: directoryId, userId }).populate("userId", "email picture _id").lean();
         return { files, directories };
     }
 
@@ -55,16 +55,19 @@ class DirectoryService {
     async deleteDirectory(directoryId, userId){
         const directoryData = await Directory.findOne({ _id: directoryId, userId }).select("_id").lean();
         if (!directoryData) {
-            throw new Error("DIRECTORY_NOT_FOUND");
+            return null;
         }
         const data = await this.#recursiveDelete(directoryData._id, userId);
         if (data.files.length != 0) {
             await File.deleteMany({ _id: { $in: data.files } });
+            await Permission.deleteMany({ resourceId: { $in: data.files }, resourceType: "file" });
         }
         if (data.directories.length != 0) {
             await Directory.deleteMany({ _id: { $in: data.directories } });
+            await Permission.deleteMany({ resourceId: { $in: data.directories }, resourceType: "directory" });
         }
         await Directory.deleteOne({ _id: directoryData._id, userId: userId });
+        return directoryData;
     }
 }
 export default new DirectoryService();

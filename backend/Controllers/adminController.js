@@ -1,19 +1,13 @@
 import User from "../Models/userModel.js";
-import Directory from "../Models/directoryModel.js";
-import File from "../Models/fileModel.js";
-import { rm } from "fs/promises";
-import redisClient from "../Configs/redis.js";
+import adminService from "../Services/adminService.js";
+import sessionManager from "../Services/sessionManager.js";
+import userService from "../Services/userService.js";
+import directoryService from "../Services/directoryService.js";
+import fileService from "../Services/fileService.js";
 
 export const getAllUsers = async (req, res, next) => {
     try {
-        const keys = await redisClient.keys("session:*")
-        const existingSessions = await Promise.all(keys.map((key) => redisClient.json.get(key)))
-        const activeUsers = new Set(existingSessions.map(({ userId }) => userId));
-        const users = await User.find().select("_id name email picture role isDisabled").lean();
-        const allUsers = users.map((user) => {
-            user.isLoggedIn = activeUsers.has(user._id.toString())
-            return user;
-        })
+        const allUsers = await adminService.getAllUsersWithActiveStatus();
         return res.status(200).json({ success: true, users: allUsers });
     } catch (err) {
         next(err);
@@ -27,9 +21,7 @@ export const forceLogout = async (req, res, next) => {
         if (selectedUser.role === 'admin' && req.user.role !== 'admin') {
             return res.status(403).json({ success: false, message: "Cannot logout an admin user" });
         }
-        const existingSessions = await redisClient.ft.search("session:userIdIdx", `@userId:{${userId}}`, { RETURN: [] })
-        const deletingSessions = existingSessions.documents.map((doc) => doc.id);
-        if(deletingSessions.length > 0) await redisClient.del(deletingSessions);
+        await sessionManager.deleteAllSessions(userId);
         res.status(200).json({ success: true, message: "User has been logged out from all devices" });
     } catch (err) {
         next(err);
@@ -39,16 +31,7 @@ export const forceLogout = async (req, res, next) => {
 export const forceDelete = async (req, res, next) => {
     try {
         const { userId } = req.params;
-        const files = await File.find({ userId }).select("extension");
-        for (const { id, extension } of files) {
-            await rm(`./Storage/${id}${extension}`);
-        }
-        await File.deleteMany({ userId });
-        await Directory.deleteMany({ userId });
-        await User.findByIdAndDelete(userId);
-        const existingSessions = await redisClient.ft.search("session:userIdIdx", `@userId:{${userId}}`, { RETURN: [] })
-        const deletingSessions = existingSessions.documents.map((doc) => doc.id);
-        if(deletingSessions.length > 0) await redisClient.del(deletingSessions);
+        await userService.deleteCompleteAccount(userId);
         return res.status(200).json({ success: true, message: "User has been deleted successfully" });
     } catch (err) {
         next(err);
@@ -58,57 +41,18 @@ export const forceDelete = async (req, res, next) => {
 export const toggleStatus = async (req, res, next) => {
     try {
         const { userId } = req.params;
-        if (req.user.id === userId) {
-            return res.status(401).json({ success: false, message: "You can't change the status of Yourself" });
-        }
-        const selectedUser = await User.findById(userId);
-        if (selectedUser.isDisabled === false) {
-            const existingSessions = await redisClient.ft.search("session:userIdIdx", `@userId:{${userId}}`, { RETURN: [] })
-            const deletingSessions = existingSessions.documents.map((doc) => doc.id);
-            if(deletingSessions.length > 0) await redisClient.del(deletingSessions);
-        }
-        selectedUser.isDisabled = !selectedUser.isDisabled;
-        await selectedUser.save();
+        await adminService.toggleUserStatus(userId, req.user.id);
         return res.status(200).json({ success: true, message: "User Status has been changed successfully" });
     } catch (err) {
         next(err);
     }
 }
 
-const permissibleChange = {
-    owner: ["admin", "manager", "user"],
-    admin: ["admin", "manager", "user"],
-    manager: ["manager", "user"]
-}
-
-const permissibleRoles = ["admin", "manager", "user"];
-
-const roleLevels = {
-    owner: 4,
-    admin: 3,
-    manager: 2,
-    user: 1
-}
-
 export const changeRole = async (req, res, next) => {
     try {
         const { userId } = req.params;
         const { role } = req.body;
-        if (userId === req.user.id) {
-            return res.status(401).json({ success: false, message: "Forbidden: You cannot change your own role" });
-        }
-        if (!permissibleRoles.includes(role)) {
-            return res.status(401).json({ success: false, message: "Invalid Role" });
-        }
-        const selectedUser = await User.findById(userId);
-        if (roleLevels[req.user.role] < roleLevels[selectedUser.role]) {
-            return res.status(401).json({ success: false, message: "You cannot modify a user with equal or higher role" });
-        }
-        if (!permissibleChange[req.user.role].includes(role)) {
-            return res.status(401).json({ success: false, message: "You cannot change role to the specified role" });
-        }
-        selectedUser.role = role;
-        await selectedUser.save();
+        await adminService.changeUserRole(userId, role, req.user.role, req.user.id);
         return res.status(200).json({ success: true, message: "User Role has been changed successfully" });
     } catch (err) {
         next(err);
@@ -125,11 +69,10 @@ export const getDirectoryContents = async (req, res, next) => {
             return res.status(404).json({ success: false, message: "User not found" });
         }
         const parentDirectoryId = req.params?.dirId ? req.params?.dirId : user.rootDirectory.toString();
-        const files = await File.find({ parentDirectoryId, userId }).populate("userId", "email picture _id").lean();
-        const directories = await Directory.find({ parentDirectoryId, userId }).populate("userId", 'email picture _id').lean();
+        const { files, directories } = await directoryService.getDirectoryContents(parentDirectoryId, userId);
         return res.status(200).json({ success: true, files, directories });
     } catch (err) {
-        next(err)
+        next(err) 
     }
 }
 
@@ -137,7 +80,7 @@ export const renameDirectory = async (req, res, next) => {
     try {
         const { userId, dirId } = req.params;
         const { newDirectoryName } = req.body;
-        const isExists = await Directory.findOneAndUpdate({ _id: dirId, userId }, { name: newDirectoryName }).select("_id").lean();
+        const isExists = await directoryService.renameDirectory(dirId, userId, newDirectoryName);
         if (!isExists) {
             return res.status(404).json({ success: false, message: "Directory not found" });
         }
@@ -150,7 +93,7 @@ export const renameDirectory = async (req, res, next) => {
 export const deleteDirectory = async (req, res, next) => {
     try {
         const { userId, dirId } = req.params;
-        const isExists = await Directory.findOneAndDelete({ _id: dirId, userId }).select("_id").lean();
+        const isExists = await directoryService.deleteDirectory(dirId, userId);
         if (!isExists) {
             return res.status(404).json({ success: true, message: "Directory not found" });
         }
@@ -164,14 +107,15 @@ export const viewFile = async (req, res, next) => {
     try {
         const { userId, fileId } = req.params;
         const { action } = req.query;
-        const fileData = await File.findOne({ _id: fileId, userId }).select("name extension").lean();
-        if(!fileData){
+        const result = await fileService.getFileMetaDataAndPath(fileId, userId);
+        if(!result){
             return res.status(404).json({ success: false, message: "File not found"});
         }
+        const { fileData, filePath } = result;
         if (action && action === "download") {
-            return res.download(`${process.cwd()}/Storage/${fileId}${fileData.extension}`, fileData.name);
+            return res.download(filePath, fileData.name);
         }
-        res.sendFile(`${process.cwd()}/Storage/${fileId}${fileData.extension}`, (err) => {
+        res.sendFile(filePath, (err) => {
             if (res.headersSent) return;
             if (err) {
                 res.status(500).json({
@@ -192,8 +136,8 @@ export const renameFile = async(req, res, next) => {
     try {
         const { userId, fileId } = req.params;
         const { newFilename } = req.body;
-        const isExists = await File.findOneAndUpdate({ _id: fileId, userId }, {name: newFilename}).select("_id").lean();
-        if(!isExists){
+        const updatedData = await fileService.renameFile(fileId, userId, newFilename);
+        if(!updatedData){
             return res.status(404).json({ success: false, message: "File not found"});
         }
         return res.status(200).json({ success: true, message: "File renamed Successfully"});
@@ -205,7 +149,7 @@ export const renameFile = async(req, res, next) => {
 export const deleteFile = async(req, res, next) => {
     try {
         const { userId, fileId } = req.params;
-        const isExists = await File.findOneAndDelete({ _id: fileId, userId }).select("_id").lean();
+        const isExists = await fileService.deleteFile(fileId, userId);
         if(!isExists){
             return res.status(404).json({ success: false, message: "File not found"});
         }

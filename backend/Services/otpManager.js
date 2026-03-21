@@ -1,4 +1,5 @@
 import { sendEmail } from "./sendEmailService.js";
+import Otp from "../Models/otpModel.js";
 
 class OtpManager {
     async sendVerificationCode(email){

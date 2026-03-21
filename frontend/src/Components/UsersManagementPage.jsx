@@ -66,7 +66,7 @@ const UsersManagementPage = () => {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ resourceId, userId }),
+      body: JSON.stringify({ resourceId, resourceType, userId }),
     });
     const data = await res.json();
     if (data.success) {

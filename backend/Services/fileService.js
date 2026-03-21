@@ -1,3 +1,4 @@
+import path from "path";
 import Directory from "../Models/directoryModel.js";
 import File from "../Models/fileModel.js";
 import Permission from "../Models/permissionModel.js";
@@ -42,10 +43,10 @@ class FileService {
     }
 
     async deleteFile(fileId, userId){
-        const fileData = await File.findOne({_id: fileId, userId}).select("extension").lean();
+        const fileData = await File.findOneAndDelete({_id: fileId, userId}).select("extension").lean();
         if(!fileData) return null;
-        await File.deleteOne({_id: fileId, userId});
         await storageService.deletePhysicalFile(fileId, fileData.extension);
+        await Permission.deleteMany({ resourceId: fileId, resourceType: "file" });
         return fileData;
     }
 }
