@@ -10,6 +10,7 @@ import adminRoutes from './Routes/adminRoutes.js'
 import shareRoutes from './Routes/shareRoutes.js'
 import {checkAuth} from "./Middlewares/authMiddleware.js";
 import { connectDB } from "./Configs/db.js";
+import httpLogger from './Middlewares/httpLogger.js';
 
 const app = express();
 const port = 4000;
@@ -22,6 +23,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(cookieParser(process.env.Cookie_Secret));
+app.use(httpLogger);
 
 app.use('/directory',checkAuth, directoryRoutes);
 app.use('/file',checkAuth, fileRoutes);
